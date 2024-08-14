@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+.submenu-enter {
+  max-height: 0;
+  opacity: 0;
+}
+.submenu-enter-active {
+  max-height: 200px; /* Adjust based on your content's height */
+  opacity: 1;
+  transition: max-height 300ms ease-in, opacity 300ms ease-in;
+}
+.submenu-exit {
+  max-height: 200px; /* Adjust based on your content's height */
+  opacity: 1;
+}
+.submenu-exit-active {
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 300ms ease-out, opacity 300ms ease-out;
+}
+.canvasjs-chart-credit {
+  display: none;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+.navitem:hover + .child {
+  opacity: 1;
+  z-index: 20;
+}
