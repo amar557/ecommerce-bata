@@ -1,5 +1,5 @@
 import { GoArrowLeft } from "react-icons/go";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import { storage } from "../firebase";
@@ -9,9 +9,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";
+import { RxCross2 } from "react-icons/rx";
 import {
   Box,
   Checkbox,
+  Chip,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -22,10 +24,12 @@ import { FiUploadCloud } from "react-icons/fi";
 import { getBrands, getCategories } from "../Redux/Async/Asynch";
 import { port, sizes } from "../Data";
 import { toast } from "react-toastify";
-function AddProduct() {
+function UpdateItem() {
   const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
   const checkedIcon = <CheckBoxIcon fontSize="small" />;
   const navigate = useNavigate();
+  const { id } = useParams();
+  console.log(id);
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
   const [galleryImages, setGalleryImages] = useState(null);
@@ -41,6 +45,19 @@ function AddProduct() {
     gender: "male",
     thumbnailImage: "",
   });
+
+  //   const id = useParams();
+  console.log(id);
+  useEffect(() => {
+    async function getItemData() {
+      const api = await fetch(`${port}/api/item/finditem/${id}`, {
+        method: "GET",
+      });
+      const res = await api.json();
+      setForm(res);
+    }
+    getItemData();
+  }, [id]);
 
   useEffect(() => {
     if (galleryImages) {
@@ -112,9 +129,8 @@ function AddProduct() {
         thumbnailImage: "",
       });
     }
-    console.log(res);
-    console.log(form);
   };
+  console.log(form);
 
   const thumbnailImg = useRef();
   const galleryImgs = useRef();
@@ -124,7 +140,7 @@ function AddProduct() {
     dispatch(getCategories());
   }, []);
   const { categories, brands } = useSelector((select) => select.Categories);
-
+  console.log(form.sizes);
   const handleAutocompleteChange = (event, value, type) => {
     if (type === "category" && categories && categories.length > 0) {
       const cat = categories.find((item) => item.category === value);
@@ -215,6 +231,7 @@ function AddProduct() {
               freeSolo
               id="free-solo-2-demo"
               disableClearable
+              value={form.category}
               className="grow rounded-md bg-slate-50"
               options={
                 categories && categories.length > 0
@@ -250,6 +267,7 @@ function AddProduct() {
               freeSolo
               id="free-solo-2-demo"
               disableClearable
+              value={form.brand}
               className="grow   rounded-md bg-slate-50"
               options={
                 brands &&
@@ -285,6 +303,7 @@ function AddProduct() {
             id="checkboxes-tags-demo"
             className="my-2"
             options={sizes}
+            value={form.sizes} // The selected sizes are shown here
             onChange={(e, value) => handleAutocompleteChange(e, value, "sizes")}
             disableCloseOnSelect
             getOptionLabel={(option) => option.title}
@@ -304,10 +323,24 @@ function AddProduct() {
             }}
             style={{ width: 500 }}
             renderInput={(params) => (
-              <TextField {...params} label="sizes" placeholder="Favorites" />
+              <TextField
+                {...params}
+                label="Sizes"
+                placeholder="Select size(s)"
+              />
             )}
           />
         </div>
+        {form.sizes && form.sizes.length > 0 && (
+          <div className="selected-sizes mt-4">
+            <h4 className="capitalize font-medium text-sm">available Sizes:</h4>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              {form.sizes.map((size, index) => (
+                <Chip key={index} label={size.title} color="primary" />
+              ))}
+            </div>
+          </div>
+        )}
         <div>
           <label
             htmlFor=""
@@ -423,6 +456,20 @@ function AddProduct() {
             <span>select image</span>
           </label>
         </div>
+        {form.thumbnailImage && (
+          <div className="relative h-20 w-20">
+            <img src={form.thumbnailImage} className="w-full h-auto" alt="" />
+            <button
+              className="bg-white flex items-center justify-center text-red-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
+              onClick={(e) => {
+                e.preventDefault();
+                setForm({ ...form, thumbnailImage: "" });
+              }}
+            >
+              <RxCross2 />
+            </button>
+          </div>
+        )}
         <div>
           <label
             htmlFor=""
@@ -461,4 +508,4 @@ function AddProduct() {
   );
 }
 
-export default AddProduct;
+export default UpdateItem;

@@ -10,7 +10,7 @@ const app = express();
 
 app.use(express.json());
 const corsOptions = {
-  origin: "https://ecommerce-woad-nine.vercel.app",
+  origin: "http://localhost:5173",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
@@ -22,7 +22,9 @@ app.use("/api/item", route);
 app.use("/api", Categories);
 app.use("/api", dynamicNavbar);
 mongoose
-  .connect("mongodb://localhost:27017/bata")
+  .connect(
+    "mongodb+srv://amarhussain391:9paDhEsS74X28hnt@cluster0.rvzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+  )
   .then(() => {
     console.log("database connected");
   })

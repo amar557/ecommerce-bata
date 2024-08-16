@@ -17,6 +17,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserLayout from "./User/pages/UserLayout";
 import Home from "./User/pages/Home";
+import UpdateItem from "./Admin/pages/UpdataItem";
 function App() {
   const [isAdmin, setIsAdmin] = useState(localStorage.getItem("admin"));
   useEffect(() => {
@@ -35,6 +36,7 @@ function App() {
           <Route path="orders" element={<Orders />} />
           <Route path="all-products" element={<AllProucts />} />
           <Route path="add-product" element={<AddProduct />} />
+          <Route path="update-product/:id" element={<UpdateItem />} />
           <Route path="categories" element={<Categories />} />
           <Route path="update/category/:id" element={<UpdateCategory />} />
           <Route path="brands" element={<Brands />} />

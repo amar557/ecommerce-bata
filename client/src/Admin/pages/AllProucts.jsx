@@ -4,9 +4,15 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoIosEye } from "react-icons/io";
 import { IoMdSearch } from "react-icons/io";
 import useFetchData from "../customHooks/useFetchData";
+import { useNavigate, useParams } from "react-router";
+import { useEffect, useState } from "react";
+import { port } from "../Data";
 function AllProucts() {
   const { data, deleteProduct } = useFetchData();
-  console.log(data);
+  const [e, setE] = useState({});
+  const navigate = useNavigate();
+  // console.log(data);
+
   return (
     <div className="px-6">
       <div className="flex items-center justify-start gap-3 my-3">
@@ -61,7 +67,10 @@ function AllProucts() {
             </p>
             <p className="text-center w-20 capitalize font-semibold ">1</p>
             <p className="text-center w-20 capitalize font-semibold flex flex-col items-center justify-center  gap-2">
-              <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-200">
+              <button
+                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-200"
+                onClick={() => navigate(`/admin/update-product/${item._id}`)}
+              >
                 <TbEdit />
               </button>
               <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-black text-white">
