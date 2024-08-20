@@ -20,7 +20,7 @@ import {
 } from "@mui/material";
 import { FiUploadCloud } from "react-icons/fi";
 import { getBrands, getCategories } from "../Redux/Async/Asynch";
-import { port, sizes } from "../Data";
+import { port, sizes } from "../../Data";
 import { toast } from "react-toastify";
 function AddProduct() {
   const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -137,7 +137,7 @@ function AddProduct() {
       setForm({ ...form, sizes: value });
     }
   };
-
+  console.log(form);
   const handleChange = (event) => {
     const { type, name, value, checked } = event.target;
 

@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteBrand, getBrands } from "../Redux/Async/Asynch";
-import { port } from "../Data";
+import { port } from "../../Data";
 
 function Brands() {
   const [brand, setBrand] = useState({ brand: "" });

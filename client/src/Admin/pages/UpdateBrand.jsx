@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
-import { port } from "../Data";
+import { port } from "../../Data";
 function UpdateBrand() {
   const { id } = useParams();
   const [brand, setBrand] = useState({ brand: "" });

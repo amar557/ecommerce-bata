@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { port } from "../Data";
+import { port } from "../../Data";
 
 function useFetchData(url) {
   const [data, setData] = useState([]);

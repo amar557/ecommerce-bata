@@ -2,7 +2,7 @@ import { IoMdSearch } from "react-icons/io";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import { TbEdit } from "react-icons/tb";
 import { useNavigate } from "react-router";
-import { port } from "../Data";
+import { port } from "../../Data";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteCategoryItem, getCategories } from "../Redux/Async/Asynch";

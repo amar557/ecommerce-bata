@@ -1,4 +1,4 @@
-import { port } from "../../Data";
+import { port } from "../../../Data";
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 // export const  = async function (e) {};

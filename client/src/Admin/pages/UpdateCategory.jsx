@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { port } from "../Data";
+import { port } from "../../Data";
 function UpdateCategory() {
   let { id } = useParams();
   const [category, setCategory] = useState({ category: "" });

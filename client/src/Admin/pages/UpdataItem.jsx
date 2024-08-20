@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { FiUploadCloud } from "react-icons/fi";
 import { getBrands, getCategories } from "../Redux/Async/Asynch";
-import { port, sizes } from "../Data";
+import { port, sizes } from "../../Data";
 import { toast } from "react-toastify";
 function UpdateItem() {
   const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -107,10 +107,10 @@ function UpdateItem() {
   }
   const handleSubmit = async function (e) {
     e.preventDefault();
-    const api = await fetch(`${port}/api/item/listItem`, {
+    const api = await fetch(`${port}/api/item/updateItem/${id}`, {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
-      method: "POST",
+      method: "PUT",
     });
     const res = await api.json();
     toast.warn(res.warn);
@@ -365,8 +365,8 @@ function UpdateItem() {
             <Checkbox
               onChange={handleChange}
               name="offer"
-              defaultChecked={false}
-              // checked={form.offer}
+              defaultChecked={form.offer}
+              checked={form.offer}
             />
           }
         />
@@ -494,6 +494,27 @@ function UpdateItem() {
             <FiUploadCloud />
             <span>select images</span>
           </label>
+        </div>
+        <div className="flex items-center justify-start gap-4 ">
+          {form.images &&
+            form.images.length > 0 &&
+            form.images.map((img, ind) => (
+              <div className="relative h-auto w-20">
+                <img src={img} className="w-full h-auto" alt="" />
+                <button
+                  className="bg-white flex items-center justify-center text-red-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setForm({
+                      ...form,
+                      images: form.images.filter((pic, i) => i !== ind),
+                    });
+                  }}
+                >
+                  <RxCross2 />
+                </button>
+              </div>
+            ))}
         </div>
         <button
           className="w-full bg-black disabled:opacity-50  disabled:cursor-wait text-white py-2 rounded-md uppercase my-2"

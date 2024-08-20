@@ -4,59 +4,59 @@ import ListItem from "../Schema/ItemSchema.js";
 export const ListCategories = async function (req, res, next) {
   const createdCat = await categorySchema(req.body);
   createdCat.save();
-  res.send({ msg: createdCat });
+  res.status(200).send({ msg: createdCat });
 };
 export const listBrands = async function (req, res, next) {
   const createdBrand = await brandSchema(req.body);
   createdBrand.save();
-  res.send({ msg: createdBrand });
+  res.status(200).send({ msg: createdBrand });
 };
 export const listItem = async function (req, res, next) {
   const createdItem = await ListItem(req.body);
   createdItem.save();
-  res.send({ msg: "item listed successfully" });
+  res.status(200).send({ msg: "item listed successfully" });
 };
 
 export const updateItem = async function (req, res, next) {
   const id = req.params.id;
   let item1 = req.body;
   const item = await ListItem.findByIdAndUpdate(id, item1, { new: true });
-  res.send({ msg: item });
+  res.status(200).send({ msg: "updated successfully" });
 };
 export const deleteItem = async function (req, res, next) {
   const id = req.params.id;
   let item1 = req.body;
   const item = await ListItem.findByIdAndDelete(id, item1, { new: true });
-  res.send({ msg: "deleted successfully" });
+  res.status(200).send({ msg: "deleted successfully" });
 };
 
 export const getAllItems = async function (req, res, next) {
   const items = await ListItem.find();
 
-  res.send(items);
+  res.status(200).send(items);
 };
 export const getAllBrands = async function (req, res, next) {
   const brandsList = await brandSchema.find();
-  res.send(brandsList);
+  res.status(200).send(brandsList);
 };
 export const getAllCategories = async function (req, res, next) {
   const categoriesList = await categorySchema.find();
-  res.send(categoriesList);
+  res.status(200).send(categoriesList);
 };
 export const getItem = async function (req, res, next) {
   const id = req.params.id;
   const item = await ListItem.findById(id);
-  res.send(item);
+  res.status(200).send(item);
 };
 export const deleteCategory = async function (req, res, next) {
   const id = req.params.id;
   const item = await categorySchema.findByIdAndDelete(id);
-  res.send({ msg: "item deleted successfully" });
+  res.status(200).send({ msg: "item deleted successfully" });
 };
 export const deleteBrand = async function (req, res, next) {
   const id = req.params.id;
   const item = await brandSchema.findByIdAndDelete(id);
-  res.send({ msg: "item deleted successfully" });
+  res.status(200).send({ msg: "item deleted successfully" });
 };
 export const updateCategory = async function (req, res, next) {
   const id = req.params.id;

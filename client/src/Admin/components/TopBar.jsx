@@ -7,7 +7,9 @@ import profile from "../../assets/profile.webp";
 import { IoMdArrowDropdown } from "react-icons/io";
 import { FiUser } from "react-icons/fi";
 import { useState } from "react";
+import { useNavigate } from "react-router";
 function TopBar() {
+  const navigate = useNavigate();
   const [showpofile, setShowProfile] = useState(false);
   const hanleLoginPopUp = function () {
     setShowProfile((show) => !show);
@@ -52,7 +54,10 @@ function TopBar() {
           {showpofile && (
             <ul className="absolute top-8 right-0 w-40 bg-white  shadow-sm border  text-black">
               <li className="text-sm font-medium p-2">loged in 20 min ago</li>
-              <li className="flex items-center justify-start ps-2 gap-3  py-2 hover:bg-slate-100 px-1">
+              <li
+                className="flex items-center justify-start ps-2 gap-3  py-2 hover:bg-slate-100 px-1"
+                onClick={() => navigate("/admin/profile")}
+              >
                 <span className="text-sm">
                   <FiUser />
                 </span>

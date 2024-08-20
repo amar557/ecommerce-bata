@@ -6,7 +6,7 @@ import { IoMdSearch } from "react-icons/io";
 import useFetchData from "../customHooks/useFetchData";
 import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import { port } from "../Data";
+import { port } from "../../Data";
 function AllProucts() {
   const { data, deleteProduct } = useFetchData();
   const [e, setE] = useState({});
