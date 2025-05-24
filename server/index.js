@@ -10,10 +10,11 @@ const app = express();
 
 app.use(express.json());
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: ["http://localhost:5173", "https://ecommerce-bata.vercel.app"],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
+
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
