@@ -1,56 +1,74 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
-const item = new mongoose.Schema({
-  title: {
-    type: String,
-    require: true,
+const itemSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+    },
+    images: {
+      type: [String],
+      required: true,
+    },
+    thumbnailImage: {
+      type: String,
+    },
+    sizes: [
+      {
+        size: {
+          type: String,
+          required: true,
+          trim: true,
+        },
+        stock: {
+          type: Number,
+          required: true,
+          trim: true,
+        },
+      },
+    ],
+
+    category: {
+      type: String,
+      required: true,
+    },
+    categoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+    },
+    brand: {
+      type: String,
+      required: true,
+    },
+    brandId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Brand",
+    },
+    color: {
+      type: String,
+      required: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+    },
+    offer: {
+      type: Boolean,
+      default: false,
+    },
+    discountPrice: {
+      type: Number,
+    },
+    gender: {
+      type: String,
+      required: true,
+    },
   },
-  description: {
-    type: String,
-  },
-  images: {
-    type: Array,
-    require: true,
-  },
-  thumbnailImage: {
-    type: String,
-  },
-  sizes: {
-    type: Array,
-  },
-  category: {
-    type: String,
-    require: true,
-  },
-  categoryId: {
-    type: String,
-  },
-  brand: {
-    type: String,
-    require: true,
-  },
-  brandId: {
-    type: String,
-  },
-  color: {
-    type: String,
-    require: true,
-  },
-  price: {
-    type: Number,
-    require: true,
-  },
-  offer: {
-    type: Boolean,
-    default: false,
-  },
-  discountPrice: {
-    type: Number,
-  },
-  gender: {
-    type: String,
-    require: true,
-  },
-});
-const ListItem = mongoose.model("item", item);
+  { timestamps: true }
+);
+
+const ListItem = mongoose.model("Item", itemSchema);
 export default ListItem;

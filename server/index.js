@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import route from "./Routes/api.route.js";
 import Categories from "./Routes/categories.route.js";
+import cartRoutes from "./Routes/cartRoutes.js";
 import authRouter from "./Routes/Auth.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -15,6 +16,11 @@ const corsOptions = {
   credentials: true,
 };
 
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  next();
+});
+
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
@@ -22,9 +28,11 @@ app.use("/api/auth", authRouter);
 app.use("/api/item", route);
 app.use("/api", Categories);
 app.use("/api", dynamicNavbar);
+app.use("/api/cart", cartRoutes);
 mongoose
   .connect(
-    "mongodb+srv://amarhussain391:9paDhEsS74X28hnt@cluster0.rvzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    "mongodb://127.0.0.1:27017/mydatabase",
+    // "mongodb+srv://amarhussain391:9paDhEsS74X28hnt@cluster0.rvzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => {
     console.log("database connected");

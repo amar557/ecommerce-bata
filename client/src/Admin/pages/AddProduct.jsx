@@ -7,8 +7,6 @@ import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import {
   Box,
   Checkbox,
@@ -17,14 +15,16 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  Button,
+  IconButton,
 } from "@mui/material";
 import { FiUploadCloud } from "react-icons/fi";
+import { MdDelete } from "react-icons/md";
 import { getBrands, getCategories } from "../Redux/Async/Asynch";
-import { port, sizes } from "../../Data";
+import { port } from "../../Data";
 import { toast } from "react-toastify";
+
 function AddProduct() {
-  const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
-  const checkedIcon = <CheckBoxIcon fontSize="small" />;
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
@@ -40,6 +40,7 @@ function AddProduct() {
     discountPrice: 0,
     gender: "male",
     thumbnailImage: "",
+    sizes: [],
   });
 
   useEffect(() => {
@@ -47,11 +48,13 @@ function AddProduct() {
       handleDataSubmit();
     }
   }, [galleryImages]);
+
   useEffect(() => {
     if (file) {
       handleThumbnailImage();
     }
   }, [file]);
+
   async function handleThumbnailImage() {
     setLoading(true);
     const mainref = ref(storage, `thumbnail/${file.name + Date.now()}`);
@@ -88,6 +91,7 @@ function AddProduct() {
     urls = [];
     setLoading(false);
   }
+
   const handleSubmit = async function (e) {
     e.preventDefault();
     const api = await fetch(`${port}/api/item/listItem`, {
@@ -110,6 +114,7 @@ function AddProduct() {
         discountPrice: 0,
         gender: "male",
         thumbnailImage: "",
+        sizes: [],
       });
     }
     console.log(res);
@@ -119,10 +124,12 @@ function AddProduct() {
   const thumbnailImg = useRef();
   const galleryImgs = useRef();
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(getBrands());
     dispatch(getCategories());
   }, []);
+
   const { categories, brands } = useSelector((select) => select.Categories);
 
   const handleAutocompleteChange = (event, value, type) => {
@@ -133,11 +140,9 @@ function AddProduct() {
       const cat = brands.find((item) => item.brand === value);
       console.log("brnads");
       setForm({ ...form, brand: cat.brand, brandId: cat._id });
-    } else if (type === "sizes") {
-      setForm({ ...form, sizes: value });
     }
   };
-  console.log(form);
+
   const handleChange = (event) => {
     const { type, name, value, checked } = event.target;
 
@@ -156,16 +161,46 @@ function AddProduct() {
     });
   };
 
+  // Add new size/stock entry
+  const handleAddSize = () => {
+    setForm({
+      ...form,
+      sizes: [...form.sizes, { size: "", stock: 0 }],
+    });
+  };
+
+  // Remove size/stock entry
+  const handleRemoveSize = (index) => {
+    const updatedSizes = form.sizes.filter((_, i) => i !== index);
+    setForm({ ...form, sizes: updatedSizes });
+  };
+
+  // Update specific size/stock entry
+  const handleSizeChange = (index, field, value) => {
+    const updatedSizes = form.sizes.map((item, i) => {
+      if (i === index) {
+        return {
+          ...item,
+          [field]: field === "stock" ? (value ? parseInt(value) : 0) : value,
+        };
+      }
+      return item;
+    });
+    setForm({ ...form, sizes: updatedSizes });
+  };
+
+  console.log(form);
+
   return (
     <div className="px-6 bg-slate-100">
       <div className="flex items-center justify-between w-full">
         <h2 className="capitalize font-semibold text-xl">add product</h2>
         <button
-          className="bg-black uppercase  rounded-sm text-white flex gap-1  py-2 px-4 items-center justify-center"
+          className="bg-black uppercase rounded-sm text-white flex gap-1 py-2 px-4 items-center justify-center"
           onClick={() => navigate(-1)}
         >
           <GoArrowLeft />
-          <span className="font-semibold text-sm  ">back</span>
+          <span className="font-semibold text-sm">back</span>
         </button>
       </div>
 
@@ -250,7 +285,7 @@ function AddProduct() {
               freeSolo
               id="free-solo-2-demo"
               disableClearable
-              className="grow   rounded-md bg-slate-50"
+              className="grow rounded-md bg-slate-50"
               options={
                 brands &&
                 brands.length > 0 &&
@@ -273,41 +308,66 @@ function AddProduct() {
             />
           </Stack>
         </div>
-        <div>
-          <label
-            htmlFor=""
-            className="block text-sm capitalize font-semibold my-2"
-          >
-            check the sizes that are available:
-          </label>
-          <Autocomplete
-            multiple
-            id="checkboxes-tags-demo"
-            className="my-2"
-            options={sizes}
-            onChange={(e, value) => handleAutocompleteChange(e, value, "sizes")}
-            disableCloseOnSelect
-            getOptionLabel={(option) => option.title}
-            renderOption={(props, option, { selected }) => {
-              const { key, ...optionProps } = props;
-              return (
-                <li key={key} {...optionProps}>
-                  <Checkbox
-                    icon={icon}
-                    checkedIcon={checkedIcon}
-                    style={{ marginRight: 8 }}
-                    checked={selected}
-                  />
-                  {option.title}
-                </li>
-              );
-            }}
-            style={{ width: 500 }}
-            renderInput={(params) => (
-              <TextField {...params} label="sizes" placeholder="Favorites" />
-            )}
-          />
+
+        {/* Sizes and Stock Section */}
+        <div className="my-4">
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm capitalize font-semibold">
+              sizes and stock:
+            </label>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={handleAddSize}
+              className="bg-blue-500"
+            >
+              Add Size
+            </Button>
+          </div>
+
+          {form.sizes.map((sizeItem, index) => (
+            <div key={index} className="flex items-center gap-3 mb-3">
+              <TextField
+                label="Size"
+                placeholder="e.g., S, M, L, XL"
+                value={sizeItem.size}
+                onChange={(e) =>
+                  handleSizeChange(index, "size", e.target.value)
+                }
+                className="bg-slate-50"
+                size="small"
+                sx={{ flex: 1 }}
+              />
+              <TextField
+                label="Stock"
+                type="number"
+                placeholder="Stock quantity"
+                value={sizeItem.stock}
+                onChange={(e) =>
+                  handleSizeChange(index, "stock", e.target.value)
+                }
+                className="bg-slate-50"
+                size="small"
+                sx={{ flex: 1 }}
+                inputProps={{ min: 0 }}
+              />
+              <IconButton
+                color="error"
+                onClick={() => handleRemoveSize(index)}
+                size="small"
+              >
+                <MdDelete size={20} />
+              </IconButton>
+            </div>
+          ))}
+
+          {form.sizes.length === 0 && (
+            <p className="text-gray-500 text-sm italic">
+              No sizes added yet. Click "Add Size" to add size and stock information.
+            </p>
+          )}
         </div>
+
         <div>
           <label
             htmlFor=""
@@ -319,8 +379,8 @@ function AddProduct() {
           <input
             type="color"
             value={form.color}
-            className=" border w-1/2 box-border"
-            id=" color"
+            className="border w-1/2 box-border"
+            id="color"
             name="color"
             onChange={handleChange}
           />
@@ -333,7 +393,6 @@ function AddProduct() {
               onChange={handleChange}
               name="offer"
               defaultChecked={false}
-              // checked={form.offer}
             />
           }
         />
@@ -416,7 +475,7 @@ function AddProduct() {
           />
           <label
             htmlFor=""
-            className="flex items-center justify-start border-blue-200 border w-max p-3 text-base transition-all gap-3  hover:bg-blue-200 hover:shadow-2xl shadow-blue-100 capitalize font-semibold my-2 cursor-pointer "
+            className="flex items-center justify-start border-blue-200 border w-max p-3 text-base transition-all gap-3 hover:bg-blue-200 hover:shadow-2xl shadow-blue-100 capitalize font-semibold my-2 cursor-pointer"
             onClick={() => thumbnailImg.current.click()}
           >
             <FiUploadCloud />
@@ -441,7 +500,7 @@ function AddProduct() {
           />
           <label
             htmlFor=""
-            className="flex items-center cursor-pointer justify-start border-blue-200 border w-max p-3 text-base transition-all gap-3  hover:bg-blue-200 hover:shadow-2xl shadow-blue-100 capitalize font-semibold my-2 "
+            className="flex items-center cursor-pointer justify-start border-blue-200 border w-max p-3 text-base transition-all gap-3 hover:bg-blue-200 hover:shadow-2xl shadow-blue-100 capitalize font-semibold my-2"
             onClick={() => galleryImgs.current.click()}
           >
             <FiUploadCloud />
@@ -449,7 +508,7 @@ function AddProduct() {
           </label>
         </div>
         <button
-          className="w-full bg-black disabled:opacity-50  disabled:cursor-wait text-white py-2 rounded-md uppercase my-2"
+          className="w-full bg-black disabled:opacity-50 disabled:cursor-wait text-white py-2 rounded-md uppercase my-2"
           type="submit"
           onClick={handleSubmit}
           disabled={loading}

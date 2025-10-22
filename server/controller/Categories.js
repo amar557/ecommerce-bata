@@ -12,9 +12,19 @@ export const listBrands = async function (req, res, next) {
   res.status(200).send({ msg: createdBrand });
 };
 export const listItem = async function (req, res, next) {
-  const createdItem = await ListItem(req.body);
-  createdItem.save();
-  res.status(200).send({ msg: "item listed successfully" });
+  try {
+    const createdItem = new ListItem(req.body); // ✅ use `new` when creating a document
+    await createdItem.save();
+
+    res.status(200).json({ msg: "Item listed successfully" });
+  } catch (error) {
+    console.error("Error listing item:", error);
+
+    res.status(500).json({
+      msg: "Failed to list item",
+      error: error.message,
+    });
+  }
 };
 
 export const updateItem = async function (req, res, next) {
@@ -30,11 +40,26 @@ export const deleteItem = async function (req, res, next) {
   res.status(200).send({ msg: "deleted successfully" });
 };
 
-export const getAllItems = async function (req, res, next) {
-  const items = await ListItem.find();
+export const getAllItems = async (req, res, next) => {
+  try {
+    const items = await ListItem.find()
+      .populate("categoryId", "category") // populate only category field
+      .populate("brandId", "brand"); // also populate brand field
 
-  res.status(200).send(items);
+    if (!items || items.length === 0) {
+      return res.status(404).json({ msg: "No items found" });
+    }
+
+    res.status(200).json(items);
+  } catch (error) {
+    console.error("Error fetching items:", error.message);
+    res.status(500).json({
+      msg: "Failed to fetch items",
+      error: error.message,
+    });
+  }
 };
+
 export const getAllBrands = async function (req, res, next) {
   const brandsList = await brandSchema.find();
   res.status(200).send(brandsList);

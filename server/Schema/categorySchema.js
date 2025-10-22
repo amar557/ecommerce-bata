@@ -5,5 +5,5 @@ const catSchema = new mongoose.Schema({
     require: true,
   },
 });
-const categorySchema = mongoose.model("category", catSchema);
+const categorySchema = mongoose.model("Category", catSchema);
 export default categorySchema;

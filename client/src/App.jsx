@@ -18,38 +18,47 @@ import "react-toastify/dist/ReactToastify.css";
 import UserLayout from "./User/pages/UserLayout";
 import Home from "./User/pages/Home";
 import UpdateItem from "./Admin/pages/UpdataItem";
+import ProductsPage from "./User/pages/products";
+import ProductDetailsPage from "./User/pages/productDetails";
+import Cart from "./User/pages/cart";
+import CheckoutPage from "./User/pages/checkout";
+
 function App() {
   const [isAdmin, setIsAdmin] = useState(localStorage.getItem("admin"));
   useEffect(() => {
     setIsAdmin(localStorage.getItem("admin"));
   }, []);
-
-  console.log(isAdmin);
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<UserLayout />}>
-          <Route path="/" element={<Home />} />
-        </Route>
-        <Route path="admin" element={<LayOut />}>
-          <Route index element={<Dashboard />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="all-products" element={<AllProucts />} />
-          <Route path="add-product" element={<AddProduct />} />
-          <Route path="update-product/:id" element={<UpdateItem />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="update/category/:id" element={<UpdateCategory />} />
-          <Route path="brands" element={<Brands />} />
-          <Route path="update/brand/:id" element={<UpdateBrand />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="addcustomer" element={<AddCustomer />} />
-          <Route path="profile" element={<Profile />} />
-        </Route>
+    // <Provider store={store}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<UserLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/product/:id" element={<ProductDetailsPage />} />
+          </Route>
+          <Route path="admin" element={<LayOut />}>
+            <Route index element={<Dashboard />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="all-products" element={<AllProucts />} />
+            <Route path="add-product" element={<AddProduct />} />
+            <Route path="update-product/:id" element={<UpdateItem />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="update/category/:id" element={<UpdateCategory />} />
+            <Route path="brands" element={<Brands />} />
+            <Route path="update/brand/:id" element={<UpdateBrand />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="addcustomer" element={<AddCustomer />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
 
-        <Route path="login" element={<Login />} />
-      </Routes>
-      <ToastContainer autoClose={2000} />
-    </BrowserRouter>
+          <Route path="login" element={<Login />} />
+        </Routes>
+        <ToastContainer autoClose={2000} />
+      </BrowserRouter>
+    // </Provider>
   );
 }
 

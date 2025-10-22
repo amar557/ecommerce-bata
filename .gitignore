@@ -1,0 +1,45 @@
+# =======================================
+# General
+# =======================================
+.DS_Store
+.env
+.env.local
+.env.*.local
+dist/
+build/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =======================================
+# Node modules and lock files (root, client, server)
+# =======================================
+node_modules/
+yarn.lock
+
+# Ignore client dependencies and lock file
+/client/node_modules/
+/client/yarn.lock
+/client/.yarn
+
+# Ignore server dependencies and lock file
+/server/node_modules/
+/server/yarn.lock
+/server/.yarn
+
+# =======================================
+# Editor and system files
+# =======================================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =======================================
+# Optional - ignore coverage and cache
+# =======================================
+coverage/
+.cache/
+.next/
+out/
