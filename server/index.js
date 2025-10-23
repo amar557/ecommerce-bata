@@ -7,6 +7,7 @@ import authRouter from "./Routes/Auth.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dynamicNavbar from "./Routes/dynamicNavbar.js";
+import { verifyToken } from "./middlewares/verifyToken.mdw.js";
 const app = express();
 
 app.use(express.json());
@@ -28,7 +29,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/item", route);
 app.use("/api", Categories);
 app.use("/api", dynamicNavbar);
-app.use("/api/cart", cartRoutes);
+
+app.use("/api/cart",verifyToken, cartRoutes);
 mongoose
   .connect(
     // "mongodb://127.0.0.1:27017/mydatabase",

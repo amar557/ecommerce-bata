@@ -4,13 +4,16 @@ import Categories from "./Slices/Categories.slice";
 import productReducer from "./Slices/productSlice";
 import cartReducer from "./Slices/cartSlice";
 import authSlice from "./Slices/authSlice";
+import suggestedReducer from "./Slices/suggestedSlice";
+
 export const store = configureStore({
   reducer: {
     userSlice: userSlice,
     Categories,
-     products: productReducer,
-        cart: cartReducer,
-        auth: authSlice,
+    products: productReducer,
+    cart: cartReducer,
+    auth: authSlice,
+    suggested: suggestedReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),

@@ -27,6 +27,41 @@ export const listItem = async function (req, res, next) {
   }
 };
 
+
+export const getSuggestedItems = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // ✅ 1. Find the current product
+    const currentItem = await ListItem.findById(id);
+    if (!currentItem) {
+      return res.status(404).json({ msg: "Product not found" });
+    }
+
+    // ✅ 2. Find similar items (same category or gender, but not the same item)
+    const suggestedItems = await ListItem.find({
+      _id: { $ne: id }, // exclude current item
+      $or: [
+        { categoryId: currentItem.categoryId },
+        { gender: currentItem.gender },
+      ],
+    })
+      .limit(10) // limit results to 10
+      .lean();
+
+    res.status(200).json({
+      msg: "Suggested items fetched successfully",
+      data: suggestedItems,
+    });
+  } catch (error) {
+    console.error("Error fetching suggested items:", error);
+    res.status(500).json({
+      msg: "Failed to fetch suggested items",
+      error: error.message,
+    });
+  }
+};
+
 export const updateItem = async function (req, res, next) {
   const id = req.params.id;
   let item1 = req.body;
@@ -47,7 +82,7 @@ export const getAllItems = async (req, res, next) => {
       .populate("brandId", "brand"); // also populate brand field
 
     if (!items || items.length === 0) {
-      return res.status(404).json({ msg: "No items found" });
+      return res.status(200).json({ items: [] });
     }
 
     res.status(200).json(items);

@@ -5,7 +5,7 @@ import axiosInstance from "../../../constants/axiosInstance";
 // 🛒 Fetch all cart items
 export const fetchCart = createAsyncThunk("cart/fetchCart", async (userId, { rejectWithValue }) => {
   try {
-    const { data } = await axiosInstance.get(`/cart/${userId}`);
+    const { data } = await axiosInstance.get(`/api/cart/items`);
     return data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);
@@ -15,11 +15,12 @@ export const fetchCart = createAsyncThunk("cart/fetchCart", async (userId, { rej
 // ➕ Add item to cart
 export const addItemToCart = createAsyncThunk(
   "cart/addItem",
-  async ({ userId, productId, quantity = 1 }, { rejectWithValue, dispatch }) => {
+  async ({  productId, quantity = 1 }, { rejectWithValue, dispatch }) => {
     try {
-      await axiosInstance.post("/cart/add", { userId, productId, quantity });
+      console.log(productId,'prodcut id ')
+      await axiosInstance.post("/api/cart/add", {  productId, quantity });
       // Refresh cart after adding
-      dispatch(fetchCart(userId));
+      dispatch(fetchCart());
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -31,7 +32,7 @@ export const removeItemFromCart = createAsyncThunk(
   "cart/removeItem",
   async ({ cartItemId, userId }, { rejectWithValue, dispatch }) => {
     try {
-      await axiosInstance.delete(`/cart/${cartItemId}`);
+      await axiosInstance.delete(`/api/cart/${cartItemId}`);
       dispatch(fetchCart(userId));
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);

@@ -2,13 +2,19 @@ import Cart from "../Schema/Cart.js";
 
 // 🛒 Add to cart
 export const addToCart = async (req, res) => {
+  console.log(req.user);
+  let userId = req?.user?._id;
   try {
-    const { userId, productId, quantity = 1 } = req.body;
-
+    console.log(req.body)
+    const { productId, quantity = 1 } = req.body;
     // check if item already in cart
-    const existing = await Cart.findOne({ userId, productId, status: "in_cart" });
+    const existing = await Cart.findOne({
+      userId,
+      productId,
+      status: "in_cart",
+    });
     if (existing) {
-      existing.quantity += quantity;
+      existing.quantity = quantity;
       await existing.save();
       return res.status(200).json({ msg: "Cart updated", cart: existing });
     }
@@ -17,16 +23,20 @@ export const addToCart = async (req, res) => {
     res.status(201).json({ msg: "Item added to cart", cart: newCartItem });
   } catch (error) {
     console.error("Error adding to cart:", error);
-    res.status(500).json({ msg: "Failed to add to cart", error: error.message });
+    res
+      .status(500)
+      .json({ msg: "Failed to add to cart", error: error.message });
   }
 };
 
 // 📦 Get all items in cart for a user
 export const getCartItems = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const cartItems = await Cart.find({ userId, status: "in_cart" })
-      .populate("productId");
+    console.log(req.user);
+  let userId = req?.user?._id;
+    const cartItems = await Cart.find({ userId, status: "in_cart" }).populate(
+      "productId"
+    );
 
     res.status(200).json(cartItems);
   } catch (error) {
@@ -43,7 +53,9 @@ export const removeFromCart = async (req, res) => {
     res.status(200).json({ msg: "Item removed from cart" });
   } catch (error) {
     console.error("Error removing item:", error);
-    res.status(500).json({ msg: "Failed to remove item", error: error.message });
+    res
+      .status(500)
+      .json({ msg: "Failed to remove item", error: error.message });
   }
 };
 
@@ -53,7 +65,10 @@ export const checkoutCart = async (req, res) => {
     const { userId } = req.body;
 
     // mark all user's cart items as checked out
-    await Cart.updateMany({ userId, status: "in_cart" }, { status: "checked_out" });
+    await Cart.updateMany(
+      { userId, status: "in_cart" },
+      { status: "checked_out" }
+    );
 
     res.status(200).json({ msg: "Checkout successful, cart cleared" });
   } catch (error) {

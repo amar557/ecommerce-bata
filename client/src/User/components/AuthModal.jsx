@@ -9,92 +9,91 @@ function AuthModal({ isOpen, onClose, mode, onSwitchMode }) {
     email: "",
     password: "",
     confirmPassword: "",
-    name: ""
+    name: "",
   });
 
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.auth);
-
-console.log(error)
-
   const [formError, setFormError] = useState("");
-
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setFormError("");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError("");
 
-  if (mode === "signup" && formData.password !== formData.confirmPassword) {
-    setFormError("Passwords do not match");
-    return;
-  }
-
-  try {
-    if (mode === "signup") {
-      const resultAction = await dispatch(
-        registerUser({
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-        })
-      );
-
-      if (registerUser.fulfilled.match(resultAction)) {
-        // Check if the response actually indicates an error
-        if (resultAction.payload?.msg && resultAction.payload.msg.toLowerCase().includes('error')) {
-          throw new Error(resultAction.payload.msg);
-        }
-        console.log("✅ Signup successful:", resultAction.payload);
-        alert("Signup successful!");
-        onClose();
-      } else {
-        throw new Error(resultAction.payload || "Signup failed");
-      }
-    } else {
-      const resultAction = await dispatch(
-        loginUser({
-          email: formData.email,
-          password: formData.password,
-        })
-      );
-
-      if (loginUser.fulfilled.match(resultAction)) {
-        // Check if the payload contains an error message
-        const payload = resultAction.payload;
-        
-        if (payload?.msg && (
-          payload.msg.toLowerCase().includes('incorrect') ||
-          payload.msg.toLowerCase().includes('invalid') ||
-          payload.msg.toLowerCase().includes('not found') ||
-          payload.msg.toLowerCase().includes('failed')
-        )) {
-          throw new Error(payload.msg);
-        }
-        
-        console.log("✅ Login successful:", resultAction.payload);
-        alert("Login successful!");
-        onClose();
-      } else {
-        throw new Error(resultAction.payload || "Login failed");
-      }
+    if (mode === "signup" && formData.password !== formData.confirmPassword) {
+      setFormError("Passwords do not match");
+      return;
     }
 
-    setFormData({ name: "", email: "", password: "", confirmPassword: "" });
-  } catch (err) {
-    setFormError(err.message);
-  }
-};
+    try {
+      if (mode === "signup") {
+        const resultAction = await dispatch(
+          registerUser({
+            name: formData.name,
+            email: formData.email,
+            password: formData.password,
+          })
+        );
+
+        if (registerUser.fulfilled.match(resultAction)) {
+          // Check if the response actually indicates an error
+          if (
+            resultAction.payload?.msg &&
+            resultAction.payload.msg.toLowerCase().includes("error")
+          ) {
+            throw new Error(resultAction.payload.msg);
+          }
+          console.log("✅ Signup successful:", resultAction.payload);
+          alert("Signup successful!");
+          onClose();
+        } else {
+          throw new Error(resultAction.payload || "Signup failed");
+        }
+      } else {
+        const resultAction = await dispatch(
+          loginUser({
+            email: formData.email,
+            password: formData.password,
+          })
+        );
+
+        if (loginUser.fulfilled.match(resultAction)) {
+          // Check if the payload contains an error message
+          const payload = resultAction.payload;
+
+          if (
+            payload?.msg &&
+            (payload.msg.toLowerCase().includes("incorrect") ||
+              payload.msg.toLowerCase().includes("invalid") ||
+              payload.msg.toLowerCase().includes("not found") ||
+              payload.msg.toLowerCase().includes("failed"))
+          ) {
+            throw new Error(payload.msg);
+          }
+
+          console.log("✅ Login successful:", resultAction.payload);
+          alert("Login successful!");
+          onClose();
+        } else {
+          throw new Error(resultAction.payload || "Login failed");
+        }
+      }
+
+      setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+    } catch (err) {
+      setFormError(err.message);
+    }
+  };
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-lg shadow-xl max-w-md w-full relative"
         onClick={(e) => e.stopPropagation()}
       >
@@ -186,13 +185,19 @@ const handleSubmit = async (e) => {
               disabled={loading}
               className="w-full bg-black text-white py-3 rounded-md font-medium hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {loading ? "Processing..." : mode === "signin" ? "Sign In" : "Sign Up"}
+              {loading
+                ? "Processing..."
+                : mode === "signin"
+                ? "Sign In"
+                : "Sign Up"}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm">
             <span className="text-gray-600">
-              {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
+              {mode === "signin"
+                ? "Don't have an account? "
+                : "Already have an account? "}
             </span>
             <button
               onClick={onSwitchMode}

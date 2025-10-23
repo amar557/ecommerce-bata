@@ -3,12 +3,8 @@ import {
   ShoppingCart,
   User,
   Search,
-  Menu,
   X,
   Heart,
-  Star,
-  Filter,
-  ChevronDown,
   Grid,
   List,
   SlidersHorizontal,
@@ -16,75 +12,8 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../Admin/Redux/Slices/productSlice";
 import { useNavigationController } from "../../constants/navigation";
+import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
 
-// Header Component
-const Header = ({ cartCount }) => {
-  return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-8">
-            <h1 className="text-3xl font-bold text-red-600">BATA</h1>
-            <nav className="hidden md:flex space-x-6">
-              <a
-                href="#men"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Men
-              </a>
-              <a
-                href="#women"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Women
-              </a>
-              <a
-                href="#kids"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Kids
-              </a>
-              <a
-                href="#sports"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Sports
-              </a>
-            </nav>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2">
-              <Search className="w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="bg-transparent ml-2 outline-none text-sm w-64"
-              />
-            </div>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <User className="w-5 h-5 text-gray-700" />
-            </button>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <Heart className="w-5 h-5 text-gray-700" />
-            </button>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition relative">
-              <ShoppingCart className="w-5 h-5 text-gray-700" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
 
 // Filter Sidebar Component
 const FilterSidebar = ({
@@ -328,8 +257,14 @@ const FilterSidebar = ({
 };
 
 // Product Card Component
-export const ProductCard = ({ product, addToCart }) => {
-  const {navigateTo}=useNavigationController()
+export const ProductCard = ({ product }) => {
+  const { navigateTo } = useNavigationController();
+  const dispatch = useDispatch();
+  const addToCart = (id) => {
+    console.log(id);
+    dispatch(addItemToCart({ productId: id, quantity: 1 }));
+  };
+
   const [isFavorite, setIsFavorite] = useState(false);
   const hasDiscount = product.offer && product.discountPrice < product.price;
   const discountPercent = hasDiscount

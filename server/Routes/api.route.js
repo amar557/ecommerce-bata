@@ -3,6 +3,7 @@ import {
   deleteItem,
   getAllItems,
   getItem,
+  getSuggestedItems,
   listItem,
   updateItem,
 } from "../controller/Categories.js";
@@ -14,4 +15,6 @@ route.put("/updateItem/:id", updateItem);
 route.delete("/deleteItem/:id", deleteItem);
 route.get("/items", getAllItems);
 route.get("/finditem/:id", getItem);
+route.get("/suggestions/:id", getSuggestedItems); // ✅ new route
+
 export default route;

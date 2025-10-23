@@ -21,75 +21,8 @@ import {
 import { useParams } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById } from "../../Admin/Redux/Slices/productSlice";
-
-// Header Component
-const Header = ({ cartCount }) => {
-  return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-8">
-            <h1 className="text-3xl font-bold text-red-600">BATA</h1>
-            <nav className="hidden md:flex space-x-6">
-              <a
-                href="#men"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Men
-              </a>
-              <a
-                href="#women"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Women
-              </a>
-              <a
-                href="#kids"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Kids
-              </a>
-              <a
-                href="#sports"
-                className="text-gray-700 hover:text-red-600 transition"
-              >
-                Sports
-              </a>
-            </nav>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center bg-gray-100 rounded-full px-4 py-2">
-              <Search className="w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="bg-transparent ml-2 outline-none text-sm w-64"
-              />
-            </div>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <User className="w-5 h-5 text-gray-700" />
-            </button>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <Heart className="w-5 h-5 text-gray-700" />
-            </button>
-
-            <button className="p-2 hover:bg-gray-100 rounded-full transition relative">
-              <ShoppingCart className="w-5 h-5 text-gray-700" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+import { fetchSuggestedItems } from "../../Admin/Redux/Slices/suggestedSlice";
+import { ProductCard } from "./products";
 
 // Image Gallery Component
 const ImageGallery = ({ images, thumbnailImage }) => {
@@ -180,7 +113,6 @@ const ProductInfo = ({
         ((product.price - product.discountPrice) / product.price) * 100
       )
     : 0;
-
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
@@ -323,7 +255,7 @@ const ProductInfo = ({
             </button>
           </div>
           <span className="text-sm text-gray-600">
-            {product.sizes.find((s) => s.size === selectedSize)?.stock || 0}{" "}
+            {product.sizes.find((s) => s._id === selectedSize)?.stock || 0}{" "}
             items available
           </span>
         </div>
@@ -495,55 +427,53 @@ const ReviewsSection = () => {
 
 // Related Products Component
 const RelatedProducts = () => {
-  const relatedProducts = [
-    {
-      id: 1,
-      name: "Casual Loafers",
-      price: 3999,
-      image:
-        "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&h=400&fit=crop",
-    },
-    {
-      id: 2,
-      name: "Sports Shoes",
-      price: 5999,
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    },
-    {
-      id: 3,
-      name: "Formal Shoes",
-      price: 4999,
-      image:
-        "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=400&fit=crop",
-    },
-    {
-      id: 4,
-      name: "Sneakers",
-      price: 4499,
-      image:
-        "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&h=400&fit=crop",
-    },
-  ];
+  const [cartCount, setCartCount] = useState(0);
+  const dispatch = useDispatch();
+  const { data, loading, error } = useSelector((state) => state.suggested);
+  const { id: productId } = useParams();
 
+  const addToCart = (productId) => {
+    setCartCount((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    if (productId) {
+      dispatch(fetchSuggestedItems(productId));
+    }
+  }, [productId, dispatch]);
+
+  // 🌀 Loading State
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 text-center">
+        <p className="text-gray-500 animate-pulse">Loading suggestions...</p>
+      </div>
+    );
+  }
+
+  // ❌ Error State
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 text-center">
+        <p className="text-red-500">Failed to load suggestions: {error}</p>
+      </div>
+    );
+  }
+
+  // 🚫 No Suggestions
+  if (!data || data.length === 0) {
+    return null; // or show a message like: <p>No related products found.</p>
+  }
+
+  // ✅ Render suggestions
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white rounded-lg shadow-md p-6 mt-8">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">
         You May Also Like
       </h2>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {relatedProducts.map((product) => (
-          <div key={product.id} className="group cursor-pointer">
-            <div className="relative overflow-hidden rounded-lg mb-3">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-            <p className="text-lg font-bold text-gray-900">₹{product.price}</p>
-          </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        {data.map((product) => (
+          <ProductCard key={product._id} product={product} addToCart={addToCart} />
         ))}
       </div>
     </div>
@@ -561,8 +491,6 @@ export default function ProductDetailsPage() {
   const { singleProduct, loading, error } = useSelector(
     (state) => state.products
   );
-console.log(selectedSize)
-  console.log(singleProduct, loading, error);
 
   useEffect(() => {
     dispatch(fetchProductById(id));

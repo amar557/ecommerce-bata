@@ -6,20 +6,28 @@ import { categoriesArray } from "../headerData";
 import { useEffect, useState } from "react";
 import axiosInstance from "../../constants/axiosInstance";
 import AuthModal from "./AuthModal";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigationController } from "../../constants/navigation";
+import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
 function Header() {
   const [open, setOpen] = useState("");
   const [male, setMale] = useState([]);
   const [female, setFemale] = useState([]);
   const { navigateTo } = useNavigationController();
-
+const dispatch = useDispatch()
   const { loading, error, user } = useSelector((state) => state.auth);
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: "signin" });
-  const [cartTotal, setCartTotal] = useState(0);
+  const { items, error:cartError, loading:cartLoading } = useSelector((state) => state.cart);
   const [isLoggedIn, setIsLoggedIn] = useState(user?.name);
   const [userName, setUserName] = useState(user?.name);
-
+  const cartCount = items?.length || 0;
+  const totalPrice = items?.reduce(
+    (sum, item) =>
+      sum + ( item?.productId.discountPrice < item?.productId.price
+        ? item?.productId.discountPrice
+        : item?.productId.price) * item?.quantity,
+    0
+  );
   const getNavData = async (gender) => {
     try {
       const res = await axiosInstance.get(`/api/nav?gender=${gender}`);
@@ -32,8 +40,9 @@ function Header() {
 
   const getCartTotal = async () => {
     try {
-      const res = await axiosInstance.get("/api/cart/total");
-      setCartTotal(res.data.total || 0);
+      // const res = await axiosInstance.get("/api/cart/total");
+      dispatch(fetchCart())
+      // setCartTotal(res.data.total || 0);
     } catch (error) {
       console.error("Error fetching cart total:", error);
     }
@@ -49,6 +58,7 @@ function Header() {
       setFemale(femaleData);
     }
     fetchData();
+
     getCartTotal();
   }, []);
 
@@ -117,7 +127,7 @@ function Header() {
               </span>
               <span>track order</span>
             </li>
-            <li
+            {/* <li
               className="flex flex-col items-center gap- capitalize font-light"
               onClick={() => navigateTo("/cart")}
             >
@@ -125,7 +135,25 @@ function Header() {
                 <PiHandbagSimpleThin />
               </span>
               <span>rs.0</span>
-            </li>
+            </li> */}
+
+                <li
+      className="relative flex flex-col items-center gap-1 capitalize font-light cursor-pointer"
+      onClick={() => navigateTo("/cart")}
+    >
+      <span className="text-lg relative">
+        <PiHandbagSimpleThin />
+
+        {/* 🔴 Notification Badge */}
+        {cartCount > 0 && (
+          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            {cartCount}
+          </span>
+        )}
+      </span>
+
+      <span>Rs. {totalPrice}</span>
+    </li>
           </div>
         </div>
 
