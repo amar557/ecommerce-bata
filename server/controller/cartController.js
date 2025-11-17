@@ -1,12 +1,9 @@
 import Cart from "../Schema/Cart.js";
-
-// 🛒 Add to cart
 export const addToCart = async (req, res) => {
   console.log(req.user);
   let userId = req?.user?._id;
   try {
-    console.log(req.body)
-    const { productId, quantity = 1 } = req.body;
+    const { productId, quantity } = req.body;
     // check if item already in cart
     const existing = await Cart.findOne({
       userId,
@@ -14,12 +11,16 @@ export const addToCart = async (req, res) => {
       status: "in_cart",
     });
     if (existing) {
-      existing.quantity = quantity;
+      if (quantity == "up") {
+        existing.quantity += 1;
+      } else {
+        existing.quantity = quantity;
+      }
       await existing.save();
       return res.status(200).json({ msg: "Cart updated", cart: existing });
     }
 
-    const newCartItem = await Cart.create({ userId, productId, quantity });
+    const newCartItem = await Cart.create({ userId, productId, quantity:1 });
     res.status(201).json({ msg: "Item added to cart", cart: newCartItem });
   } catch (error) {
     console.error("Error adding to cart:", error);
@@ -32,8 +33,7 @@ export const addToCart = async (req, res) => {
 // 📦 Get all items in cart for a user
 export const getCartItems = async (req, res) => {
   try {
-    console.log(req.user);
-  let userId = req?.user?._id;
+    let userId = req?.user?._id;
     const cartItems = await Cart.find({ userId, status: "in_cart" }).populate(
       "productId"
     );
@@ -74,5 +74,19 @@ export const checkoutCart = async (req, res) => {
   } catch (error) {
     console.error("Error during checkout:", error);
     res.status(500).json({ msg: "Checkout failed", error: error.message });
+  }
+};
+
+export const getAdminOrders = async (req, res) => {
+  try {
+    let userId = req?.user?._id;
+    const cartItems = await Cart.find({ status: "in_cart" }).populate(
+      "productId"
+    );
+
+    res.status(200).json(cartItems);
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    res.status(500).json({ msg: "Failed to fetch cart", error: error.message });
   }
 };

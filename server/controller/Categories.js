@@ -120,11 +120,9 @@ export const deleteBrand = async function (req, res, next) {
 };
 export const updateCategory = async function (req, res, next) {
   const id = req.params.id;
-  console.log(req.body);
   const updated = await categorySchema.findByIdAndUpdate(id, req.body, {
     new: true,
   });
-  console.log(updated);
   res.status(200).send(updated);
 };
 export const getSingleCategory = async (req, res, next) => {

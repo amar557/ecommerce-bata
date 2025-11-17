@@ -33,8 +33,8 @@ app.use("/api", dynamicNavbar);
 app.use("/api/cart",verifyToken, cartRoutes);
 mongoose
   .connect(
-    // "mongodb://127.0.0.1:27017/mydatabase",
-    "mongodb+srv://amarhussain391:9paDhEsS74X28hnt@cluster0.rvzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+    "mongodb://127.0.0.1:27017/mydatabase",
+    // "mongodb+srv://amarhussain391:9paDhEsS74X28hnt@cluster0.rvzcl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
   )
   .then(() => {
     console.log("database connected");

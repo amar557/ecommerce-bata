@@ -4,14 +4,34 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoIosEye } from "react-icons/io";
 import { IoMdSearch } from "react-icons/io";
 import useFetchData from "../customHooks/useFetchData";
-import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import { port } from "../../Data";
+
+import { useNavigationController } from "../../constants/navigation";
+import { toast } from "react-toastify";
 function AllProucts() {
   const { data, deleteProduct } = useFetchData();
   const [e, setE] = useState({});
-  const navigate = useNavigate();
-  // console.log(data);
+
+  const { navigateTo } = useNavigationController();
+  const handleCopy = async (id) => {
+    try {
+      // Construct full product URL using window.location.origin
+      const completeLink = `${window.location.origin}/product/${id}`;
+
+      await navigator.clipboard.writeText(completeLink);
+      toast.success("Copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+  const handleView = async (id) => {
+    try {
+      const completeLink = `${window.location.origin}/product/${id}`;
+      window.open(completeLink, "_blank");
+    } catch (err) {
+      console.error("Failed to open:", err);
+    }
+  };
 
   return (
     <div className="px-6">
@@ -69,11 +89,14 @@ function AllProucts() {
             <p className="text-center w-20 capitalize font-semibold flex flex-col items-center justify-center  gap-2">
               <button
                 className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-200"
-                onClick={() => navigate(`/admin/update-product/${item._id}`)}
+                onClick={() => navigateTo(`/admin/update-product/${item._id}`)}
               >
                 <TbEdit />
               </button>
-              <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-black text-white">
+              <button
+                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-black text-white"
+                onClick={() => handleCopy(item._id)}
+              >
                 <MdContentCopy />
               </button>
               <button
@@ -82,7 +105,10 @@ function AllProucts() {
               >
                 <RiDeleteBin6Line />
               </button>
-              <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-100 text-slate-400">
+              <button
+                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-100 text-slate-400"
+                onClick={() => handleView(item._id)}
+              >
                 <IoIosEye />
               </button>
             </p>

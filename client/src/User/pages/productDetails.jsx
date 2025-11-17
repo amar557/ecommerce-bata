@@ -23,6 +23,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProductById } from "../../Admin/Redux/Slices/productSlice";
 import { fetchSuggestedItems } from "../../Admin/Redux/Slices/suggestedSlice";
 import { ProductCard } from "./products";
+import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
+import { useNavigationController } from "../../constants/navigation";
 
 // Image Gallery Component
 const ImageGallery = ({ images, thumbnailImage }) => {
@@ -106,7 +108,16 @@ const ProductInfo = ({
   setQuantity,
   addToCart,
 }) => {
+  const {navigateTo}=useNavigationController()
   const [isFavorite, setIsFavorite] = useState(false);
+  const dispatch = useDispatch()
+    const updateQuantity = (cartItemId, newQuantity) => {
+      if (newQuantity < 1) return;
+      dispatch(addItemToCart({ productId: cartItemId, quantity: newQuantity }));
+      setQuantity(1)
+      navigateTo('/cart')
+    };
+  
   const hasDiscount = product.offer && product.discountPrice < product.price;
   const discountPercent = hasDiscount
     ? Math.round(
@@ -264,9 +275,10 @@ const ProductInfo = ({
       {/* Action Buttons */}
       <div className="flex space-x-4">
         <button
-          onClick={addToCart}
+          onClick={()=>updateQuantity(product._id,quantity)}
           disabled={!selectedSize}
           className="flex-1 bg-red-600 text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+
         >
           <ShoppingCart className="w-5 h-5" />
           <span>Add to Cart</span>

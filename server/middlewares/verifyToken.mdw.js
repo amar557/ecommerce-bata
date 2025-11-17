@@ -8,7 +8,6 @@ export const verifyToken = async function (req, res, next) {
     if (!token) {
       return res.status(401).json({ msg: "Authorization token missing" });
     }
-
     // Verify token
     const decoded = jwt.verify(token, "secretkeyisgiven");
 

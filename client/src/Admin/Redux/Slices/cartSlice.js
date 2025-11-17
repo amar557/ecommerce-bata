@@ -6,6 +6,7 @@ import axiosInstance from "../../../constants/axiosInstance";
 export const fetchCart = createAsyncThunk("cart/fetchCart", async (userId, { rejectWithValue }) => {
   try {
     const { data } = await axiosInstance.get(`/api/cart/items`);
+    console.log(data,'called ')
     return data;
   } catch (err) {
     return rejectWithValue(err.response?.data || err.message);

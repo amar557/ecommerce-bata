@@ -261,8 +261,7 @@ export const ProductCard = ({ product }) => {
   const { navigateTo } = useNavigationController();
   const dispatch = useDispatch();
   const addToCart = (id) => {
-    console.log(id);
-    dispatch(addItemToCart({ productId: id, quantity: 1 }));
+    dispatch(addItemToCart({ productId: id, quantity: 'up' }));
   };
 
   const [isFavorite, setIsFavorite] = useState(false);
@@ -399,54 +398,64 @@ export default function ProductsPage() {
     { _id: "68f712ca35aa2d013ca7c80e", category: "Sandals" },
   ];
 
-  // Filter products based on selected filters
-  const filteredProducts = allProducts.filter((product) => {
-    if (
-      filters.brands.length > 0 &&
-      !filters.brands.includes(product.brandId._id)
-    )
+ // 🧠 Make sure products are always an array
+const productsArray = Array.isArray(allProducts) ? allProducts : [];
+
+// 🧩 Filter products safely
+const filteredProducts = productsArray.filter((product) => {
+  if (
+    filters.brands.length > 0 &&
+    !filters.brands.includes(product.brandId?._id)
+  )
+    return false;
+
+  if (
+    filters.categories.length > 0 &&
+    !filters.categories.includes(product.categoryId?._id)
+  )
+    return false;
+
+  if (filters.colors.length > 0 && !filters.colors.includes(product.color))
+    return false;
+
+  if (filters.gender.length > 0 && !filters.gender.includes(product.gender))
+    return false;
+
+  if (filters.onlyOffers && !product.offer) return false;
+
+  if (filters.sizes.length > 0) {
+    const hasSize = product.sizes?.some((s) =>
+      filters.sizes.includes(s?.size || s?.title)
+    );
+    if (!hasSize) return false;
+  }
+
+  if (filters.priceRange) {
+    const price = product.offer ? product.discountPrice : product.price;
+    if (price < filters.priceRange.min || price > filters.priceRange.max)
       return false;
-    if (
-      filters.categories.length > 0 &&
-      !filters.categories.includes(product.categoryId._id)
-    )
-      return false;
-    if (filters.colors.length > 0 && !filters.colors.includes(product.color))
-      return false;
-    if (filters.gender.length > 0 && !filters.gender.includes(product.gender))
-      return false;
-    if (filters.onlyOffers && !product.offer) return false;
+  }
 
-    if (filters.sizes.length > 0) {
-      const hasSize = product.sizes.some((s) => filters.sizes.includes(s.size));
-      if (!hasSize) return false;
-    }
+  return true;
+});
 
-    if (filters.priceRange) {
-      const price = product.offer ? product.discountPrice : product.price;
-      if (price < filters.priceRange.min || price > filters.priceRange.max)
-        return false;
-    }
+// 🧮 Sort safely
+const sortedProducts = [...filteredProducts].sort((a, b) => {
+  const priceA = a.offer ? a.discountPrice : a.price;
+  const priceB = b.offer ? b.discountPrice : b.price;
 
-    return true;
-  });
+  switch (sortBy) {
+    case "price-low":
+      return priceA - priceB;
+    case "price-high":
+      return priceB - priceA;
+    case "newest":
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    default:
+      return 0;
+  }
+});
 
-  // Sort products
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    const priceA = a.offer ? a.discountPrice : a.price;
-    const priceB = b.offer ? b.discountPrice : b.price;
-
-    switch (sortBy) {
-      case "price-low":
-        return priceA - priceB;
-      case "price-high":
-        return priceB - priceA;
-      case "newest":
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      default:
-        return 0;
-    }
-  });
 
   const addToCart = (productId) => {
     setCartCount(cartCount + 1);

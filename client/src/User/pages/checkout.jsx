@@ -1,43 +1,28 @@
-import React, { useState } from 'react';
-import { ShoppingCart, User, Search, Heart, CreditCard, Wallet, Building, Smartphone, ChevronRight, Lock, Truck, Package, MapPin, Phone, Mail, Edit2, Check } from 'lucide-react';
-
-// Header Component
-const Header = ({ cartCount }) => {
-  return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div className="flex items-center space-x-8">
-            <h1 className="text-3xl font-bold text-red-600">BATA</h1>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition">
-              <User className="w-5 h-5 text-gray-700" />
-            </button>
-            
-            <button className="p-2 hover:bg-gray-100 rounded-full transition relative">
-              <ShoppingCart className="w-5 h-5 text-gray-700" />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
+import React, { useEffect, useState } from "react";
+import {
+  ShoppingCart,
+  User,
+  CreditCard,
+  Wallet,
+  Building,
+  Smartphone,
+  ChevronRight,
+  Lock,
+  Truck,
+  Package,
+  MapPin,
+  Check,
+} from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
 
 // Progress Steps Component
 const CheckoutProgress = ({ currentStep }) => {
   const steps = [
-    { id: 1, name: 'Cart', icon: ShoppingCart },
-    { id: 2, name: 'Information', icon: User },
-    { id: 3, name: 'Payment', icon: CreditCard },
-    { id: 4, name: 'Confirmation', icon: Check }
+    { id: 1, name: "Cart", icon: ShoppingCart },
+    { id: 2, name: "Information", icon: User },
+    { id: 3, name: "Payment", icon: CreditCard },
+    { id: 4, name: "Confirmation", icon: Check },
   ];
 
   return (
@@ -46,23 +31,29 @@ const CheckoutProgress = ({ currentStep }) => {
         {steps.map((step, index) => (
           <React.Fragment key={step.id}>
             <div className="flex flex-col items-center flex-1">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center transition ${
-                currentStep >= step.id 
-                  ? 'bg-red-600 text-white' 
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
+              <div
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition ${
+                  currentStep >= step.id
+                    ? "bg-red-600 text-white"
+                    : "bg-gray-200 text-gray-500"
+                }`}
+              >
                 <step.icon className="w-6 h-6" />
               </div>
-              <span className={`text-sm mt-2 font-semibold ${
-                currentStep >= step.id ? 'text-red-600' : 'text-gray-500'
-              }`}>
+              <span
+                className={`text-sm mt-2 font-semibold ${
+                  currentStep >= step.id ? "text-red-600" : "text-gray-500"
+                }`}
+              >
                 {step.name}
               </span>
             </div>
             {index < steps.length - 1 && (
-              <div className={`flex-1 h-1 mx-2 transition ${
-                currentStep > step.id ? 'bg-red-600' : 'bg-gray-200'
-              }`} />
+              <div
+                className={`flex-1 h-1 mx-2 transition ${
+                  currentStep > step.id ? "bg-red-600" : "bg-gray-200"
+                }`}
+              />
             )}
           </React.Fragment>
         ))}
@@ -78,7 +69,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -90,16 +81,18 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
       </div>
 
       {/* Saved Addresses */}
-      {savedAddresses.length > 0 && (
+      {/* {savedAddresses.length > 0 && (
         <div className="mb-6">
-          <h3 className="font-semibold text-gray-900 mb-3">Select Saved Address</h3>
+          <h3 className="font-semibold text-gray-900 mb-3">
+            Select Saved Address
+          </h3>
           <div className="space-y-3">
             {savedAddresses.map((address, index) => (
-              <label 
+              <label
                 key={index}
                 className="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 transition"
               >
-                <input 
+                <input
                   type="radio"
                   name="savedAddress"
                   className="mt-1 w-4 h-4 text-red-600"
@@ -109,24 +102,29 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                   }}
                 />
                 <div className="ml-3 flex-1">
-                  <p className="font-semibold text-gray-900">{address.fullName}</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {address.address}, {address.city}, {address.state} - {address.pincode}
+                  <p className="font-semibold text-gray-900">
+                    {address.fullName}
                   </p>
-                  <p className="text-sm text-gray-600">Phone: {address.phone}</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {address.address}, {address.city}, {address.state} -{" "}
+                    {address.pincode}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Phone: {address.phone}
+                  </p>
                 </div>
               </label>
             ))}
           </div>
-          
-          <button 
+
+          <button
             onClick={() => setUseNewAddress(true)}
             className="mt-4 text-red-600 font-semibold hover:text-red-700 transition"
           >
             + Add New Address
           </button>
         </div>
-      )}
+      )} */}
 
       {/* New Address Form */}
       {useNewAddress && (
@@ -136,7 +134,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Full Name *
               </label>
-              <input 
+              <input
                 type="text"
                 name="fullName"
                 value={formData.fullName}
@@ -151,7 +149,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Phone Number *
               </label>
-              <input 
+              <input
                 type="tel"
                 name="phone"
                 value={formData.phone}
@@ -167,7 +165,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Email Address *
             </label>
-            <input 
+            <input
               type="email"
               name="email"
               value={formData.email}
@@ -182,7 +180,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Address *
             </label>
-            <textarea 
+            <textarea
               name="address"
               value={formData.address}
               onChange={handleInputChange}
@@ -198,7 +196,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 City *
               </label>
-              <input 
+              <input
                 type="text"
                 name="city"
                 value={formData.city}
@@ -213,7 +211,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 State *
               </label>
-              <input 
+              <input
                 type="text"
                 name="state"
                 value={formData.state}
@@ -228,7 +226,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Pincode *
               </label>
-              <input 
+              <input
                 type="text"
                 name="pincode"
                 value={formData.pincode}
@@ -242,14 +240,18 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
 
           <div>
             <label className="flex items-center space-x-2 cursor-pointer">
-              <input 
+              <input
                 type="checkbox"
                 name="saveAddress"
                 checked={formData.saveAddress}
-                onChange={(e) => setFormData({...formData, saveAddress: e.target.checked})}
+                onChange={(e) =>
+                  setFormData({ ...formData, saveAddress: e.target.checked })
+                }
                 className="w-4 h-4 text-red-600 rounded"
               />
-              <span className="text-sm text-gray-700">Save this address for future orders</span>
+              <span className="text-sm text-gray-700">
+                Save this address for future orders
+              </span>
             </label>
           </div>
         </div>
@@ -261,11 +263,36 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
 // Payment Method Component
 const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
   const paymentMethods = [
-    { id: 'card', name: 'Credit/Debit Card', icon: CreditCard, description: 'Visa, Mastercard, RuPay' },
-    { id: 'upi', name: 'UPI', icon: Smartphone, description: 'Google Pay, PhonePe, Paytm' },
-    { id: 'wallet', name: 'Wallet', icon: Wallet, description: 'Paytm, Amazon Pay' },
-    { id: 'netbanking', name: 'Net Banking', icon: Building, description: 'All major banks' },
-    { id: 'cod', name: 'Cash on Delivery', icon: Package, description: 'Pay when you receive' },
+    {
+      id: "card",
+      name: "Credit/Debit Card",
+      icon: CreditCard,
+      description: "Visa, Mastercard, RuPay",
+    },
+    {
+      id: "upi",
+      name: "UPI",
+      icon: Smartphone,
+      description: "Google Pay, PhonePe, Paytm",
+    },
+    {
+      id: "wallet",
+      name: "Wallet",
+      icon: Wallet,
+      description: "Paytm, Amazon Pay",
+    },
+    {
+      id: "netbanking",
+      name: "Net Banking",
+      icon: Building,
+      description: "All major banks",
+    },
+    {
+      id: "cod",
+      name: "Cash on Delivery",
+      icon: Package,
+      description: "Pay when you receive",
+    },
   ];
 
   return (
@@ -277,15 +304,15 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
 
       <div className="space-y-3">
         {paymentMethods.map((method) => (
-          <label 
+          <label
             key={method.id}
             className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
-              paymentMethod === method.id 
-                ? 'border-red-600 bg-red-50' 
-                : 'border-gray-200 hover:border-red-600'
+              paymentMethod === method.id
+                ? "border-red-600 bg-red-50"
+                : "border-gray-200 hover:border-red-600"
             }`}
           >
-            <input 
+            <input
               type="radio"
               name="paymentMethod"
               value={method.id}
@@ -306,13 +333,13 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
       </div>
 
       {/* Card Details Form (shown only when card is selected) */}
-      {paymentMethod === 'card' && (
+      {paymentMethod === "card" && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg space-y-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Card Number
             </label>
-            <input 
+            <input
               type="text"
               placeholder="1234 5678 9012 3456"
               className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
@@ -324,7 +351,7 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Expiry Date
               </label>
-              <input 
+              <input
                 type="text"
                 placeholder="MM/YY"
                 className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
@@ -335,7 +362,7 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 CVV
               </label>
-              <input 
+              <input
                 type="text"
                 placeholder="123"
                 className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
@@ -347,7 +374,7 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Cardholder Name
             </label>
-            <input 
+            <input
               type="text"
               placeholder="John Doe"
               className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
@@ -357,12 +384,12 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
       )}
 
       {/* UPI Form */}
-      {paymentMethod === 'upi' && (
+      {paymentMethod === "upi" && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
             UPI ID
           </label>
-          <input 
+          <input
             type="text"
             placeholder="yourname@upi"
             className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
@@ -376,8 +403,12 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
 // Order Summary Component
 const OrderSummary = ({ cartItems, discount, shippingCost }) => {
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = item.offer ? item.discountPrice : item.price;
-    return sum + (price * item.quantity);
+    let product = item?.productId;
+    const price =
+      product?.price > product?.discountPrice
+        ? product.discountPrice
+        : product.price;
+    return sum + price * item.quantity;
   }, 0);
 
   const discountAmount = (subtotal * discount) / 100;
@@ -389,25 +420,38 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
 
       {/* Cart Items */}
       <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-        {cartItems.map((item) => (
-          <div key={item._id} className="flex space-x-3">
-            <img 
-              src={item.thumbnailImage} 
-              alt={item.title}
-              className="w-16 h-16 object-cover rounded-lg"
-            />
-            <div className="flex-1">
-              <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">{item.title}</h4>
-              <p className="text-xs text-gray-600">{item.brandId.brand}</p>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-gray-600">Size: {item.selectedSize} | Qty: {item.quantity}</p>
-                <p className="text-sm font-bold text-gray-900">
-                  ₹{(item.offer ? item.discountPrice : item.price) * item.quantity}
-                </p>
+        {cartItems?.length > 0 &&
+          cartItems.map((item) => {
+            let product = item?.productId;
+            return (
+              <div key={item._id} className="flex space-x-3">
+                <img
+                  src={product.thumbnailImage}
+                  alt={product.title}
+                  className="w-16 h-16 object-cover rounded-lg"
+                />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-1">
+                    {product.title}
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    {product.brandId.brand}
+                  </p>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-xs text-gray-600">
+                      Size: {product?.selectedSize} | Qty: {item.quantity}
+                    </p>
+                    <p className="text-sm font-bold text-gray-900">
+                      ₹
+                      {(product?.price > product?.discountPrice
+                        ? product.discountPrice
+                        : product.price) * item.quantity}
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
       </div>
 
       {/* Price Breakdown */}
@@ -416,14 +460,14 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
           <span>Subtotal ({cartItems.length} items)</span>
           <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
         </div>
-        
+
         {discount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount ({discount}%)</span>
             <span className="font-semibold">-₹{discountAmount.toFixed(2)}</span>
           </div>
         )}
-        
+
         <div className="flex justify-between text-gray-700">
           <span>Shipping</span>
           <span className="font-semibold">
@@ -437,14 +481,14 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
 
         <div className="flex justify-between text-gray-700">
           <span>Tax (GST 18%)</span>
-          <span className="font-semibold">₹{((total * 0.18)).toFixed(2)}</span>
+          <span className="font-semibold">₹{(total * 0.18).toFixed(2)}</span>
         </div>
       </div>
 
       {/* Total */}
       <div className="flex justify-between items-center text-xl font-bold text-gray-900 mb-6 pb-6 border-t pt-6">
         <span>Total Amount</span>
-        <span>₹{(total + (total * 0.18)).toFixed(2)}</span>
+        <span>₹{(total + total * 0.18).toFixed(2)}</span>
       </div>
 
       {/* Security Badge */}
@@ -453,7 +497,9 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
           <Lock className="w-5 h-5" />
           <span className="text-sm font-semibold">Secure Checkout</span>
         </div>
-        <p className="text-xs text-green-600 mt-1">Your payment information is encrypted and secure</p>
+        <p className="text-xs text-green-600 mt-1">
+          Your payment information is encrypted and secure
+        </p>
       </div>
 
       {/* Delivery Info */}
@@ -462,7 +508,9 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
           <Truck className="w-5 h-5" />
           <span className="text-sm font-semibold">Expected Delivery</span>
         </div>
-        <p className="text-xs text-blue-600 mt-1">Your order will be delivered in 3-5 business days</p>
+        <p className="text-xs text-blue-600 mt-1">
+          Your order will be delivered in 3-5 business days
+        </p>
       </div>
     </div>
   );
@@ -471,30 +519,34 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
 // Main Checkout Page Component
 export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(2);
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const { items, error, loading } = useSelector((state) => state.cart);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(fetchCart());
+  }, [dispatch]);
   const [formData, setFormData] = useState({
-    fullName: '',
-    phone: '',
-    email: '',
-    address: '',
-    city: '',
-    state: '',
-    pincode: '',
-    saveAddress: false
+    fullName: "",
+    phone: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    saveAddress: false,
   });
 
   // Sample saved addresses
   const savedAddresses = [
     {
-      fullName: 'John Doe',
-      phone: '+91 98765 43210',
-      email: 'john@example.com',
-      address: '123 Main Street, Apartment 4B',
-      city: 'Rawalpindi',
-      state: 'Punjab',
-      pincode: '46000'
-    }
+      fullName: "John Doe",
+      phone: "+91 98765 43210",
+      email: "john@example.com",
+      address: "123 Main Street, Apartment 4B",
+      city: "Rawalpindi",
+      state: "Punjab",
+      pincode: "46000",
+    },
   ];
 
   // Sample cart data
@@ -505,10 +557,11 @@ export default function CheckoutPage() {
       price: 5999,
       discountPrice: 4999,
       offer: true,
-      brandId: { _id: '68f712c435aa2d013ca7c806', brand: 'Bata' },
+      brandId: { _id: "68f712c435aa2d013ca7c806", brand: "Bata" },
       selectedSize: "9",
       quantity: 1,
-      thumbnailImage: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=400&fit=crop",
+      thumbnailImage:
+        "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=400&fit=crop",
     },
     {
       _id: "68f7146bac77848bf0b6c27c",
@@ -516,10 +569,11 @@ export default function CheckoutPage() {
       price: 3999,
       discountPrice: 2999,
       offer: true,
-      brandId: { _id: '68f712c435aa2d013ca7c807', brand: 'Nike' },
+      brandId: { _id: "68f712c435aa2d013ca7c807", brand: "Nike" },
       selectedSize: "7",
       quantity: 2,
-      thumbnailImage: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=400&fit=crop",
+      thumbnailImage:
+        "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=400&fit=crop",
     },
   ];
 
@@ -528,25 +582,35 @@ export default function CheckoutPage() {
   const shippingCost = 0; // Free shipping
 
   const handlePlaceOrder = () => {
-    if (!formData.fullName || !formData.phone || !formData.email || !formData.address) {
-      alert('Please fill in all required fields');
+    if (
+      !formData.fullName ||
+      !formData.phone ||
+      !formData.email ||
+      !formData.address
+    ) {
+      alert("Please fill in all required fields");
       return;
     }
-    
+
     setCurrentStep(4);
-    alert('Order placed successfully!');
+    alert("Order placed successfully!");
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <a href="/" className="hover:text-red-600">Home</a> / 
-            <a href="/cart" className="hover:text-red-600"> Cart</a> / 
-            <span className="text-gray-900 font-semibold"> Checkout</span>
+            <a href="/" className="hover:text-red-600">
+              Home
+            </a>{" "}
+            /
+            <a href="/cart" className="hover:text-red-600">
+              {" "}
+              Cart
+            </a>{" "}
+            /<span className="text-gray-900 font-semibold"> Checkout</span>
           </p>
         </div>
 
@@ -556,13 +620,13 @@ export default function CheckoutPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Forms */}
           <div className="lg:col-span-2">
-            <ShippingAddressForm 
+            <ShippingAddressForm
               formData={formData}
               setFormData={setFormData}
               savedAddresses={savedAddresses}
             />
 
-            <PaymentMethod 
+            <PaymentMethod
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
             />
@@ -570,17 +634,30 @@ export default function CheckoutPage() {
             {/* Terms and Place Order */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <label className="flex items-start space-x-3 mb-6 cursor-pointer">
-                <input 
+                <input
                   type="checkbox"
                   className="w-5 h-5 text-red-600 rounded mt-1"
                   required
                 />
                 <span className="text-sm text-gray-700">
-                  I agree to the <a href="#" className="text-red-600 font-semibold hover:text-red-700">Terms & Conditions</a> and <a href="#" className="text-red-600 font-semibold hover:text-red-700">Privacy Policy</a>
+                  I agree to the{" "}
+                  <a
+                    href="#"
+                    className="text-red-600 font-semibold hover:text-red-700"
+                  >
+                    Terms & Conditions
+                  </a>{" "}
+                  and{" "}
+                  <a
+                    href="#"
+                    className="text-red-600 font-semibold hover:text-red-700"
+                  >
+                    Privacy Policy
+                  </a>
                 </span>
               </label>
 
-              <button 
+              <button
                 onClick={handlePlaceOrder}
                 className="w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center space-x-2"
               >
@@ -592,8 +669,8 @@ export default function CheckoutPage() {
 
           {/* Right Column - Order Summary */}
           <div>
-            <OrderSummary 
-              cartItems={cartItems}
+            <OrderSummary
+              cartItems={items}
               discount={discount}
               shippingCost={shippingCost}
             />

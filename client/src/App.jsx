@@ -3,7 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import LayOut from "./Admin/pages/LayOut";
 import Profile from "./Admin/pages/Profile";
 import Orders from "./Admin/pages/Orders";
-import AllProucts from "./Admin/pages/AllProucts";
+import AllProucts from "./Admin/pages/AllProducts";
 import AddProduct from "./Admin/pages/AddProduct";
 import Categories from "./Admin/pages/Categories";
 import Brands from "./Admin/pages/Brands";
@@ -22,12 +22,24 @@ import ProductsPage from "./User/pages/products";
 import ProductDetailsPage from "./User/pages/productDetails";
 import Cart from "./User/pages/cart";
 import CheckoutPage from "./User/pages/checkout";
+import { useDispatch } from "react-redux";
+import { checkTokenExpiration } from "./Admin/Redux/Slices/authSlice";
 
 function App() {
   const [isAdmin, setIsAdmin] = useState(localStorage.getItem("admin"));
   useEffect(() => {
     setIsAdmin(localStorage.getItem("admin"));
   }, []);
+
+  
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    console.log('checking')
+    dispatch(checkTokenExpiration());
+    console.log('checking 2')
+  }, [dispatch]);
+
   return (
     // <Provider store={store}>
       <BrowserRouter>

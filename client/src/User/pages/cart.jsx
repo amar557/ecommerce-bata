@@ -156,6 +156,7 @@ const OrderSummary = ({
     const price = item.discountPrice < item.price ? item.discountPrice : item.price;
     return sum + price * cartItem.quantity;
   }, 0);
+  // const {navigateTo}=useNavigationController()
 
   const shipping = subtotal > 999 ? 0 : 99;
   const discountAmount = (subtotal * discount) / 100;
@@ -264,6 +265,7 @@ const OrderSummary = ({
 
 // Empty Cart Component
 const EmptyCart = () => {
+  const { navigateTo}=useNavigationController()
   return (
     <div className="bg-white rounded-lg shadow-md p-12 text-center">
       <div className="max-w-md mx-auto">
@@ -277,7 +279,7 @@ const EmptyCart = () => {
           Looks like you haven't added anything to your cart yet. Start shopping
           to fill it up!
         </p>
-        <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition">
+        <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition" onClick={()=>navigateTo('/products')}>
           Start Shopping
         </button>
       </div>
@@ -370,6 +372,7 @@ export default function Cart() {
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
 
+  const {navigateTo}=useNavigationController()
   // Fetch cart on mount
   useEffect(() => {
     dispatch(fetchCart());
@@ -491,6 +494,7 @@ export default function Cart() {
                 setCouponCode={setCouponCode}
                 applyCoupon={applyCoupon}
                 discount={discount}
+                navigateTo={navigateTo}
               />
             </div>
           </div>

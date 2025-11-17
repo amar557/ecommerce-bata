@@ -9,23 +9,30 @@ import AuthModal from "./AuthModal";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigationController } from "../../constants/navigation";
 import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
+import { toast } from "react-toastify";
 function Header() {
   const [open, setOpen] = useState("");
   const [male, setMale] = useState([]);
   const [female, setFemale] = useState([]);
   const { navigateTo } = useNavigationController();
-const dispatch = useDispatch()
+  const dispatch = useDispatch();
   const { loading, error, user } = useSelector((state) => state.auth);
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: "signin" });
-  const { items, error:cartError, loading:cartLoading } = useSelector((state) => state.cart);
-  const [isLoggedIn, setIsLoggedIn] = useState(user?.name);
-  const [userName, setUserName] = useState(user?.name);
+  const {
+    items,
+    error: cartError,
+    loading: cartLoading,
+  } = useSelector((state) => state.cart);
+  console.log(user);
+
   const cartCount = items?.length || 0;
   const totalPrice = items?.reduce(
     (sum, item) =>
-      sum + ( item?.productId.discountPrice < item?.productId.price
+      sum +
+      (item?.productId.discountPrice < item?.productId.price
         ? item?.productId.discountPrice
-        : item?.productId.price) * item?.quantity,
+        : item?.productId.price) *
+        item?.quantity,
     0
   );
   const getNavData = async (gender) => {
@@ -41,7 +48,7 @@ const dispatch = useDispatch()
   const getCartTotal = async () => {
     try {
       // const res = await axiosInstance.get("/api/cart/total");
-      dispatch(fetchCart())
+      dispatch(fetchCart());
       // setCartTotal(res.data.total || 0);
     } catch (error) {
       console.error("Error fetching cart total:", error);
@@ -63,7 +70,7 @@ const dispatch = useDispatch()
   }, []);
 
   const handleAuthClick = () => {
-    if (isLoggedIn) {
+    if (user?.name) {
       // Handle logout or navigate to profile
       // You can add logout logic here
       console.log("User is already logged in");
@@ -84,10 +91,15 @@ const dispatch = useDispatch()
   };
 
   const handleAuthSuccess = (userData) => {
-    // setIsLoggedIn(true);
-    // setUserName(userData.name);
-    // Update cart total after login if needed
-    // getCartTotal();
+
+  };
+
+  let handleToCart = () => {
+    if (!user?.name) {
+      toast.info("login first to check cart");
+    } else {
+      navigateTo("/cart");
+    }
   };
 
   return (
@@ -119,41 +131,33 @@ const dispatch = useDispatch()
               <span className="text-lg">
                 <PiUserLight />
               </span>
-              <span>{isLoggedIn ? userName : "login"}</span>
+              <span>{user?.name ? user?.name : "login"}</span>
             </li>
-            <li className="flex flex-col items-center gap- capitalize font-light">
-              <span className="text-lg">
-                <PiPoliceCarLight />
-              </span>
-              <span>track order</span>
-            </li>
-            {/* <li
-              className="flex flex-col items-center gap- capitalize font-light"
-              onClick={() => navigateTo("/cart")}
+            {user?.name && (
+              <li className="flex flex-col items-center  capitalize font-light">
+                <span className="text-lg">
+                  <PiPoliceCarLight />
+                </span>
+                <span>track order</span>
+              </li>
+            )}
+
+            <li
+              className="relative flex flex-col items-center  capitalize font-light cursor-pointer"
+              onClick={handleToCart}
             >
-              <span className="text-lg">
+              <span className="text-lg relative">
                 <PiHandbagSimpleThin />
+
+                {cartCount > 0 && (
+                  <span className="absolute -top-3 -right-3 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </span>
-              <span>rs.0</span>
-            </li> */}
 
-                <li
-      className="relative flex flex-col items-center gap-1 capitalize font-light cursor-pointer"
-      onClick={() => navigateTo("/cart")}
-    >
-      <span className="text-lg relative">
-        <PiHandbagSimpleThin />
-
-        {/* 🔴 Notification Badge */}
-        {cartCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-            {cartCount}
-          </span>
-        )}
-      </span>
-
-      <span>Rs. {totalPrice}</span>
-    </li>
+              <span>Rs. {totalPrice}</span>
+            </li>
           </div>
         </div>
 
