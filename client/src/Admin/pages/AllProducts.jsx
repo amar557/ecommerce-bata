@@ -4,13 +4,11 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { IoIosEye } from "react-icons/io";
 import { IoMdSearch } from "react-icons/io";
 import useFetchData from "../customHooks/useFetchData";
-import { useEffect, useState } from "react";
 
 import { useNavigationController } from "../../constants/navigation";
 import { toast } from "react-toastify";
 function AllProucts() {
   const { data, deleteProduct } = useFetchData();
-  const [e, setE] = useState({});
 
   const { navigateTo } = useNavigationController();
   const handleCopy = async (id) => {
