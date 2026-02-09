@@ -22,6 +22,11 @@ import ProductsPage from "./User/pages/products";
 import ProductDetailsPage from "./User/pages/productDetails";
 import Cart from "./User/pages/cart";
 import CheckoutPage from "./User/pages/checkout";
+import OrderSuccess from "./User/pages/OrderSuccess";
+import TrackOrder from "./User/pages/TrackOrder";
+import ContactUs from "./User/pages/ContactUs";
+import ShippingInfo from "./User/pages/ShippingInfo";
+import Returns from "./User/pages/Returns";
 import { useDispatch } from "react-redux";
 import { checkTokenExpiration } from "./Admin/Redux/Slices/authSlice";
 
@@ -50,6 +55,12 @@ function App() {
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
+            <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/track-order" element={<TrackOrder />} />
+            <Route path="/track-order/:orderId" element={<TrackOrder />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/shipping" element={<ShippingInfo />} />
+            <Route path="/returns" element={<Returns />} />
           </Route>
           <Route path="admin" element={<LayOut />}>
             <Route index element={<Dashboard />} />
@@ -68,7 +79,18 @@ function App() {
 
           <Route path="login" element={<Login />} />
         </Routes>
-        <ToastContainer autoClose={2000} />
+        <ToastContainer
+          position="top-right"
+          autoClose={2000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
       </BrowserRouter>
     // </Provider>
   );

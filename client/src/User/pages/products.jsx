@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   ShoppingCart,
   User,
@@ -13,34 +14,22 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../Admin/Redux/Slices/productSlice";
 import { useNavigationController } from "../../constants/navigation";
 import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
+import { toast } from "react-toastify";
 
 
-// Filter Sidebar Component
+// Filter Sidebar Component – all options derived from fetched data
 const FilterSidebar = ({
   filters,
   setFilters,
   brands,
   categories,
+  colors,
+  sizes,
+  genderOptions,
+  priceRanges,
   showMobileFilters,
   setShowMobileFilters,
 }) => {
-  const colors = [
-    "#000000",
-    "#FFFFFF",
-    "#cc0000",
-    "#0000cc",
-    "#00cc00",
-    "#ffcc00",
-    "#ff6600",
-    "#cc00cc",
-  ];
-  const sizes = ["6", "7", "8", "9", "10", "11", "12"];
-  const priceRanges = [
-    { label: "Under ₹2000", min: 0, max: 2000 },
-    { label: "₹2000 - ₹4000", min: 2000, max: 4000 },
-    { label: "₹4000 - ₹6000", min: 4000, max: 6000 },
-    { label: "Above ₹6000", min: 6000, max: Infinity },
-  ];
 
   const toggleFilter = (filterType, value) => {
     setFilters((prev) => ({
@@ -77,10 +66,11 @@ const FilterSidebar = ({
       </div>
 
       {/* Gender Filter */}
+      {genderOptions?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Gender</h4>
         <div className="space-y-2">
-          {["male", "female", "unisex"].map((gender) => (
+          {genderOptions.map((gender) => (
             <label
               key={gender}
               className="flex items-center space-x-2 cursor-pointer"
@@ -96,8 +86,10 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Brand Filter */}
+      {brands?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Brand</h4>
         <div className="space-y-2 max-h-48 overflow-y-auto">
@@ -117,8 +109,10 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Category Filter */}
+      {categories?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Category</h4>
         <div className="space-y-2">
@@ -138,8 +132,10 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Color Filter */}
+      {colors?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Color</h4>
         <div className="flex flex-wrap gap-3">
@@ -162,8 +158,10 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Size Filter */}
+      {sizes?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Size</h4>
         <div className="grid grid-cols-4 gap-2">
@@ -182,8 +180,10 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Price Range Filter */}
+      {priceRanges?.length > 0 && (
       <div className="border-b pb-4">
         <h4 className="font-semibold text-gray-900 mb-3">Price Range</h4>
         <div className="space-y-2">
@@ -209,6 +209,7 @@ const FilterSidebar = ({
           ))}
         </div>
       </div>
+      )}
 
       {/* Offers Filter */}
       <div>
@@ -260,8 +261,42 @@ const FilterSidebar = ({
 export const ProductCard = ({ product }) => {
   const { navigateTo } = useNavigationController();
   const dispatch = useDispatch();
-  const addToCart = (id) => {
-    dispatch(addItemToCart({ productId: id, quantity: 'up' }));
+  const { user } = useSelector((state) => state.auth);
+  
+  const addToCart = async (id) => {
+    // Check if user is logged in
+    if (!user || !user.name) {
+      toast.warning("You are not logged in. Please login to add items to cart.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    
+    try {
+      await dispatch(addItemToCart({ productId: id, quantity: 'up' })).unwrap();
+      toast.success("Item added to cart successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (error) {
+      toast.error("Failed to add item to cart. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
   };
 
   const [isFavorite, setIsFavorite] = useState(false);
@@ -372,6 +407,7 @@ export default function ProductsPage() {
     onlyOffers: false,
   });
   const dispatch = useDispatch();
+  const [searchParams] = useSearchParams();
 
   const {
     items: allProducts,
@@ -383,23 +419,80 @@ export default function ProductsPage() {
     dispatch(fetchProducts());
   }, []);
 
-  // Sample data - replace with your actual data from API
-  const brands = [
-    { _id: "68f712c435aa2d013ca7c806", brand: "Bata" },
-    { _id: "68f712c435aa2d013ca7c807", brand: "Nike" },
-    { _id: "68f712c435aa2d013ca7c808", brand: "Adidas" },
-    { _id: "68f712c435aa2d013ca7c809", brand: "Puma" },
-  ];
-
-  const categories = [
-    { _id: "68f712ca35aa2d013ca7c80b", category: "Casual" },
-    { _id: "68f712ca35aa2d013ca7c80c", category: "Formal" },
-    { _id: "68f712ca35aa2d013ca7c80d", category: "Sports" },
-    { _id: "68f712ca35aa2d013ca7c80e", category: "Sandals" },
-  ];
-
  // 🧠 Make sure products are always an array
 const productsArray = Array.isArray(allProducts) ? allProducts : [];
+
+// 🧩 Dynamic filter options derived from fetched products
+const dynamicBrands = React.useMemo(() => {
+  const seen = new Set();
+  return productsArray
+    .filter((p) => p.brandId?._id && !seen.has(p.brandId._id) && (seen.add(p.brandId._id), true))
+    .map((p) => ({ _id: p.brandId._id, brand: p.brandId.brand || p.brand }));
+}, [productsArray]);
+
+const dynamicCategories = React.useMemo(() => {
+  const seen = new Set();
+  return productsArray
+    .filter((p) => p.categoryId?._id && !seen.has(p.categoryId._id) && (seen.add(p.categoryId._id), true))
+    .map((p) => ({ _id: p.categoryId._id, category: p.categoryId.category || p.category }));
+}, [productsArray]);
+
+const dynamicColors = React.useMemo(() => {
+  return [...new Set(productsArray.map((p) => p.color).filter(Boolean))];
+}, [productsArray]);
+
+const dynamicSizes = React.useMemo(() => {
+  const sizes = productsArray.flatMap((p) => (p.sizes || []).map((s) => s?.size).filter(Boolean));
+  return [...new Set(sizes)].sort((a, b) => {
+    const na = Number(a);
+    const nb = Number(b);
+    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  });
+}, [productsArray]);
+
+const dynamicGenders = React.useMemo(() => {
+  return [...new Set(productsArray.map((p) => p.gender).filter(Boolean))];
+}, [productsArray]);
+
+const dynamicPriceRanges = React.useMemo(() => {
+  const prices = productsArray.map((p) =>
+    p.offer && p.discountPrice != null ? p.discountPrice : p.price
+  ).filter((n) => typeof n === "number");
+  if (prices.length === 0) return [];
+  const min = Math.min(...prices);
+  const max = Math.max(...prices);
+  if (min === max) return [{ label: `₹${min}`, min, max: Infinity }];
+  const step = Math.max(1, Math.ceil((max - min) / 4));
+  return [
+    { label: `Under ₹${min + step}`, min: 0, max: min + step },
+    { label: `₹${min + step} - ₹${min + step * 2}`, min: min + step, max: min + step * 2 },
+    { label: `₹${min + step * 2} - ₹${min + step * 3}`, min: min + step * 2, max: min + step * 3 },
+    { label: `Above ₹${min + step * 3}`, min: min + step * 3, max: Infinity },
+  ];
+}, [productsArray]);
+
+// 🧩 Sync filters from URL (e.g. /products?gender=male or ?category=Sports)
+useEffect(() => {
+  const gender = searchParams.get("gender");
+  const categoryName = searchParams.get("category");
+  setFilters((prev) => {
+    const next = { ...prev };
+    if (gender) {
+      next.gender = [gender];
+      next.categories = [];
+    } else if (categoryName && dynamicCategories.length > 0) {
+      const cat = dynamicCategories.find(
+        (c) => c.category?.toLowerCase() === categoryName.toLowerCase()
+      );
+      if (cat) {
+        next.categories = [cat._id];
+        next.gender = [];
+      }
+    }
+    return next;
+  });
+}, [searchParams, dynamicCategories]);
 
 // 🧩 Filter products safely
 const filteredProducts = productsArray.filter((product) => {
@@ -480,7 +573,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
             All Products
           </h1>
           <p className="text-gray-600">
-            Showing {sortedProducts.length} of {allProducts.length} products
+            Showing {sortedProducts.length} of {productsArray.length} products
           </p>
         </div>
 
@@ -489,8 +582,12 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
           <FilterSidebar
             filters={filters}
             setFilters={setFilters}
-            brands={brands}
-            categories={categories}
+            brands={dynamicBrands}
+            categories={dynamicCategories}
+            colors={dynamicColors}
+            sizes={dynamicSizes}
+            genderOptions={dynamicGenders}
+            priceRanges={dynamicPriceRanges}
             showMobileFilters={showMobileFilters}
             setShowMobileFilters={setShowMobileFilters}
           />

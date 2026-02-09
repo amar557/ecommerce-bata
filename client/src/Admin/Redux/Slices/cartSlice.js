@@ -13,14 +13,16 @@ export const fetchCart = createAsyncThunk("cart/fetchCart", async (userId, { rej
   }
 });
 
-// ➕ Add item to cart
+// ➕ Add item to cart (selectedSizeId = size subdoc _id when adding from product details)
 export const addItemToCart = createAsyncThunk(
   "cart/addItem",
-  async ({  productId, quantity = 1 }, { rejectWithValue, dispatch }) => {
+  async ({ productId, quantity = 1, selectedSizeId }, { rejectWithValue, dispatch }) => {
     try {
-      console.log(productId,'prodcut id ')
-      await axiosInstance.post("/api/cart/add", {  productId, quantity });
-      // Refresh cart after adding
+      await axiosInstance.post("/api/cart/add", {
+        productId,
+        quantity,
+        ...(selectedSizeId != null && selectedSizeId !== "" && { selectedSizeId }),
+      });
       dispatch(fetchCart());
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -41,13 +43,17 @@ export const removeItemFromCart = createAsyncThunk(
   }
 );
 
-// ✅ Checkout (clear all)
+// ✅ Place order (creates order, clears cart). Pass { shippingAddress, paymentMethod }.
 export const checkoutUserCart = createAsyncThunk(
   "cart/checkout",
-  async (userId, { rejectWithValue, dispatch }) => {
+  async ({ shippingAddress, paymentMethod = "cod" }, { rejectWithValue, dispatch }) => {
     try {
-      await axiosInstance.post(`/cart/checkout/${userId}`);
-      dispatch(fetchCart(userId));
+      const { data } = await axiosInstance.post("/api/cart/checkout", {
+        shippingAddress: shippingAddress || {},
+        paymentMethod,
+      });
+      dispatch(fetchCart());
+      return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -82,6 +88,9 @@ const cartSlice = createSlice({
       })
       .addCase(removeItemFromCart.rejected, (state, action) => {
         state.error = action.payload;
+      })
+      .addCase(checkoutUserCart.fulfilled, (state) => {
+        state.items = [];
       })
       .addCase(checkoutUserCart.rejected, (state, action) => {
         state.error = action.payload;

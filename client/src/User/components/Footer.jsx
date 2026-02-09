@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 // Footer Component
 const Footer = () => {
   return (
@@ -15,24 +17,24 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Shop</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/products?gender=male" className="hover:text-white transition">
                   Men
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/products?gender=female" className="hover:text-white transition">
                   Women
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/products?gender=kids" className="hover:text-white transition">
                   Kids
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/products?category=Sports" className="hover:text-white transition">
                   Sports
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -41,24 +43,19 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-gray-400">
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/contact" className="hover:text-white transition">
                   Contact Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/shipping" className="hover:text-white transition">
                   Shipping Info
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition">
+                <Link to="/returns" className="hover:text-white transition">
                   Returns
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-white transition">
-                  Size Guide
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

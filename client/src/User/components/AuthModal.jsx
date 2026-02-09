@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { PiX } from "react-icons/pi";
-import axiosInstance from "../../constants/axiosInstance";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser, registerUser } from "../../Admin/Redux/Slices/authSlice";
 

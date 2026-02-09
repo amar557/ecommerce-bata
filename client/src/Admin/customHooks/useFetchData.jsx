@@ -9,7 +9,7 @@ function useFetchData(url) {
       method: "GET",
     });
     const res = await api.json();
-    setData(res);
+    setData(Array.isArray(res) ? res : []);
   }
   useEffect(() => {
     fetchData();

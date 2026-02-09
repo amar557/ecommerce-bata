@@ -25,6 +25,7 @@ import { fetchSuggestedItems } from "../../Admin/Redux/Slices/suggestedSlice";
 import { ProductCard } from "./products";
 import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
 import { useNavigationController } from "../../constants/navigation";
+import { toast } from "react-toastify";
 
 // Image Gallery Component
 const ImageGallery = ({ images, thumbnailImage }) => {
@@ -111,12 +112,51 @@ const ProductInfo = ({
   const {navigateTo}=useNavigationController()
   const [isFavorite, setIsFavorite] = useState(false);
   const dispatch = useDispatch()
-    const updateQuantity = (cartItemId, newQuantity) => {
-      if (newQuantity < 1) return;
-      dispatch(addItemToCart({ productId: cartItemId, quantity: newQuantity }));
-      setQuantity(1)
-      navigateTo('/cart')
-    };
+  const { user } = useSelector((state) => state.auth);
+  
+  const updateQuantity = async (cartItemId, newQuantity, sizeId) => {
+    // Check if user is logged in
+    if (!user || !user.name) {
+      toast.warning("You are not logged in. Please login to add items to cart.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    
+    if (newQuantity < 1) return;
+    
+    try {
+      await dispatch(addItemToCart({
+        productId: cartItemId,
+        quantity: newQuantity,
+        selectedSizeId: sizeId || undefined,
+      })).unwrap();
+      toast.success("Item added to cart successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      setQuantity(1);
+      navigateTo('/cart');
+    } catch (error) {
+      toast.error("Failed to add item to cart. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
+  };
   
   const hasDiscount = product.offer && product.discountPrice < product.price;
   const discountPercent = hasDiscount
@@ -275,7 +315,7 @@ const ProductInfo = ({
       {/* Action Buttons */}
       <div className="flex space-x-4">
         <button
-          onClick={()=>updateQuantity(product._id,quantity)}
+          onClick={() => updateQuantity(product._id, quantity, selectedSize)}
           disabled={!selectedSize}
           className="flex-1 bg-red-600 text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
 
@@ -510,11 +550,25 @@ export default function ProductDetailsPage() {
 
   const addToCart = () => {
     if (!selectedSize) {
-      alert("Please select a size");
+      toast.warning("Please select a size before adding to cart.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       return;
     }
     setCartCount(cartCount + quantity);
-    alert(`Added ${quantity} item(s) to cart!`);
+    toast.success(`Added ${quantity} item(s) to cart!`, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
   };
 
   // Show loader while product is loading

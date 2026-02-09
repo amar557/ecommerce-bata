@@ -77,9 +77,35 @@ export const deleteItem = async function (req, res, next) {
 
 export const getAllItems = async (req, res, next) => {
   try {
-    const items = await ListItem.find()
-      .populate("categoryId", "category") // populate only category field
-      .populate("brandId", "brand"); // also populate brand field
+    const { gender, category, offer, minPrice, maxPrice } = req.query;
+    const filter = { isActive: { $ne: false } };
+
+    if (gender && typeof gender === "string") {
+      filter.gender = { $regex: new RegExp(`^${gender.trim()}`, "i") };
+    }
+    if (category && typeof category === "string") {
+      const cat = await categorySchema.findOne({
+        category: { $regex: new RegExp(`^${category.trim()}`, "i") },
+      });
+      if (cat) filter.categoryId = cat._id;
+    }
+    if (offer === "true" || offer === "1") {
+      filter.offer = true;
+    }
+    const priceFilter = {};
+    if (minPrice != null && !Number.isNaN(Number(minPrice))) {
+      priceFilter.$gte = Number(minPrice);
+    }
+    if (maxPrice != null && !Number.isNaN(Number(maxPrice))) {
+      priceFilter.$lte = Number(maxPrice);
+    }
+    if (Object.keys(priceFilter).length > 0) {
+      filter.price = priceFilter;
+    }
+
+    const items = await ListItem.find(filter)
+      .populate("categoryId", "category")
+      .populate("brandId", "brand");
 
     if (!items || items.length === 0) {
       return res.status(200).json({ items: [] });
@@ -90,6 +116,31 @@ export const getAllItems = async (req, res, next) => {
     console.error("Error fetching items:", error.message);
     res.status(500).json({
       msg: "Failed to fetch items",
+      error: error.message,
+    });
+  }
+};
+
+// Search products by title/description (uses text index)
+export const searchItems = async (req, res, next) => {
+  try {
+    const q = req.query.q;
+    const filter = { isActive: { $ne: false } };
+    if (q && typeof q === "string" && q.trim()) {
+      filter.$text = { $search: q.trim() };
+    } else {
+      return res.status(200).json({ items: [] });
+    }
+    const items = await ListItem.find(filter, { score: { $meta: "textScore" } })
+      .sort({ score: { $meta: "textScore" } })
+      .populate("categoryId", "category")
+      .populate("brandId", "brand")
+      .limit(50);
+    res.status(200).json(items);
+  } catch (error) {
+    console.error("Error searching items:", error.message);
+    res.status(500).json({
+      msg: "Failed to search items",
       error: error.message,
     });
   }

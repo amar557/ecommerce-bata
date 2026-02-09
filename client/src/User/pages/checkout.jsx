@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   User,
@@ -14,7 +15,8 @@ import {
   Check,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
+import { fetchCart, checkoutUserCart } from "../../Admin/Redux/Slices/cartSlice";
+import { toast } from "react-toastify";
 
 // Progress Steps Component
 const CheckoutProgress = ({ currentStep }) => {
@@ -402,7 +404,7 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
 
 // Order Summary Component
 const OrderSummary = ({ cartItems, discount, shippingCost }) => {
-  const subtotal = cartItems.reduce((sum, item) => {
+  const subtotal = (cartItems || []).reduce((sum, item) => {
     let product = item?.productId;
     const price =
       product?.price > product?.discountPrice
@@ -423,6 +425,10 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
         {cartItems?.length > 0 &&
           cartItems.map((item) => {
             let product = item?.productId;
+            const sizeObj = product?.sizes && item?.selectedSizeId
+              ? product.sizes.find((s) => String(s._id) === String(item.selectedSizeId))
+              : null;
+            const sizeLabel = sizeObj ? sizeObj.size : "—";
             return (
               <div key={item._id} className="flex space-x-3">
                 <img
@@ -439,7 +445,7 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
                   </p>
                   <div className="flex items-center justify-between mt-1">
                     <p className="text-xs text-gray-600">
-                      Size: {product?.selectedSize} | Qty: {item.quantity}
+                      Size: {sizeLabel} | Qty: {item.quantity}
                     </p>
                     <p className="text-sm font-bold text-gray-900">
                       ₹
@@ -457,7 +463,7 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
       {/* Price Breakdown */}
       <div className="space-y-3 mb-6 pb-6 border-t pt-6">
         <div className="flex justify-between text-gray-700">
-          <span>Subtotal ({cartItems.length} items)</span>
+          <span>Subtotal ({(cartItems || []).length} items)</span>
           <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
         </div>
 
@@ -518,13 +524,18 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
 
 // Main Checkout Page Component
 export default function CheckoutPage() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(2);
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [placing, setPlacing] = useState(false);
   const { items, error, loading } = useSelector((state) => state.cart);
+  const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
+
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -536,64 +547,46 @@ export default function CheckoutPage() {
     saveAddress: false,
   });
 
-  // Sample saved addresses
-  const savedAddresses = [
-    {
-      fullName: "John Doe",
-      phone: "+91 98765 43210",
-      email: "john@example.com",
-      address: "123 Main Street, Apartment 4B",
-      city: "Rawalpindi",
-      state: "Punjab",
-      pincode: "46000",
-    },
-  ];
+  const savedAddresses = [];
+  const discount = 0;
+  const shippingCost = 0;
 
-  // Sample cart data
-  const cartItems = [
-    {
-      _id: "68f7146bac77848bf0b6c27b",
-      title: "Classic Leather Formal Shoes",
-      price: 5999,
-      discountPrice: 4999,
-      offer: true,
-      brandId: { _id: "68f712c435aa2d013ca7c806", brand: "Bata" },
-      selectedSize: "9",
-      quantity: 1,
-      thumbnailImage:
-        "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=400&fit=crop",
-    },
-    {
-      _id: "68f7146bac77848bf0b6c27c",
-      title: "Women's High Heels",
-      price: 3999,
-      discountPrice: 2999,
-      offer: true,
-      brandId: { _id: "68f712c435aa2d013ca7c807", brand: "Nike" },
-      selectedSize: "7",
-      quantity: 2,
-      thumbnailImage:
-        "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=400&fit=crop",
-    },
-  ];
-
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const discount = 10; // Could come from coupon
-  const shippingCost = 0; // Free shipping
-
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
+    if (!user?.name) {
+      toast.error("Please log in to place an order.");
+      return;
+    }
     if (
       !formData.fullName ||
       !formData.phone ||
       !formData.email ||
       !formData.address
     ) {
-      alert("Please fill in all required fields");
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    if (!items?.length) {
+      toast.error("Your cart is empty.");
       return;
     }
 
-    setCurrentStep(4);
-    alert("Order placed successfully!");
+    setPlacing(true);
+    try {
+      const result = await dispatch(
+        checkoutUserCart({ shippingAddress: formData, paymentMethod })
+      ).unwrap();
+      const orderId = result?.orderId;
+      if (orderId) {
+        navigate(`/order-success?orderId=${orderId}`);
+      } else {
+        navigate("/order-success");
+      }
+    } catch (err) {
+      const msg = err?.warn || err?.msg || (typeof err === "string" ? err : "Failed to place order.");
+      toast.error(msg);
+    } finally {
+      setPlacing(false);
+    }
   };
 
   return (
@@ -659,10 +652,17 @@ export default function CheckoutPage() {
 
               <button
                 onClick={handlePlaceOrder}
-                className="w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center space-x-2"
+                disabled={placing}
+                className="w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                <span>Place Order</span>
-                <ChevronRight className="w-5 h-5" />
+                {placing ? (
+                  <span>Placing order...</span>
+                ) : (
+                  <>
+                    <span>Place Order</span>
+                    <ChevronRight className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </div>
           </div>

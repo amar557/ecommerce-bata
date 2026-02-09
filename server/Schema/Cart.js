@@ -4,7 +4,7 @@ const cartSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User", // ✅ make sure you have a User model
+      ref: "user", // User model is registered as "user" (lowercase)
       required: true,
     },
     productId: {
@@ -16,6 +16,10 @@ const cartSchema = new mongoose.Schema(
       type: Number,
       default: 1,
       min: 1,
+    },
+    selectedSizeId: {
+      type: String,
+      default: null,
     },
     status: {
       type: String,

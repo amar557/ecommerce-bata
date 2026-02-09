@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Heart, Star, TrendingUp, ChevronRight } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../Admin/Redux/Slices/productSlice";
@@ -46,7 +47,7 @@ const HeroBanner = () => {
 // Category Card Component
 const CategoryCard = ({ category }) => {
   return (
-    <a href={category.link} className="group block">
+    <Link to={category.link} className="group block">
       <div className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105">
         <img
           src={category.image}
@@ -65,7 +66,7 @@ const CategoryCard = ({ category }) => {
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 };
 
@@ -253,25 +254,25 @@ export default function BataLandingPage() {
       name: "Men",
       image:
         "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop",
-      link: "#men",
+      link: "/products?gender=male",
     },
     {
       name: "Women",
       image:
         "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=400&fit=crop",
-      link: "#women",
+      link: "/products?gender=female",
     },
     {
       name: "Kids",
       image:
         "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&h=400&fit=crop",
-      link: "#kids",
+      link: "/products?gender=kids",
     },
     {
       name: "Sports",
       image:
         "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-      link: "#sports",
+      link: "/products?category=Sports",
     },
   ];
 

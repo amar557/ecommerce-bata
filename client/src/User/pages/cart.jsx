@@ -21,6 +21,7 @@ import {
   fetchCart,
   removeItemFromCart,
 } from "../../Admin/Redux/Slices/cartSlice";
+import { toast } from "react-toastify";
 
 // Header Component
 
@@ -32,10 +33,14 @@ const CartItem = ({
   quantity,
   cart: cartItem,
 }) => {
-  console.log(cartItem)
-  const hasDiscount =  item.discountPrice < item.price;
+  const hasDiscount = item.discountPrice < item.price;
   const itemPrice = hasDiscount ? item.discountPrice : item.price;
   const itemTotal = itemPrice * quantity;
+  const selectedSizeObj = item?.sizes && cartItem?.selectedSizeId
+    ? item.sizes.find((s) => String(s._id) === String(cartItem.selectedSizeId))
+    : null;
+  const sizeLabel = selectedSizeObj ? selectedSizeObj.size : (cartItem?.selectedSizeId ? "—" : "—");
+  const stock = selectedSizeObj != null ? selectedSizeObj.stock : null;
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
@@ -81,7 +86,7 @@ const CartItem = ({
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-gray-600">Size:</span>
-            <span className="font-semibold">{item.selectedSize}</span>
+            <span className="font-semibold">{sizeLabel}</span>
           </div>
         </div>
 
@@ -109,7 +114,7 @@ const CartItem = ({
             <div className="flex items-center border-2 border-gray-300 rounded-lg">
               <button
                 onClick={() =>
-                  updateQuantity(item._id, Math.max(1, quantity - 1))
+                  updateQuantity(item._id, Math.max(1, quantity - 1), cartItem?.selectedSizeId)
                 }
                 className="p-2 hover:bg-gray-100 transition"
               >
@@ -117,7 +122,7 @@ const CartItem = ({
               </button>
               <span className="px-4 font-semibold">{quantity}</span>
               <button
-                onClick={() => updateQuantity(item._id, quantity + 1)}
+                onClick={() => updateQuantity(item._id, quantity + 1, cartItem?.selectedSizeId)}
                 className="p-2 hover:bg-gray-100 transition"
               >
                 <Plus className="w-4 h-4" />
@@ -132,9 +137,9 @@ const CartItem = ({
         </div>
 
         {/* Stock Status */}
-        {item.stock < 5 && item.stock > 0 && (
+        {stock != null && stock < 5 && stock > 0 && (
           <p className="text-sm text-orange-600 font-semibold">
-            Only {item.stock} left in stock!
+            Only {stock} left in stock for this size!
           </p>
         )}
       </div>
@@ -378,15 +383,72 @@ export default function Cart() {
     dispatch(fetchCart());
   }, [dispatch]);
 
-  const updateQuantity = (cartItemId, newQuantity) => {
-    console.log(cartItemId, newQuantity);
+  const { user } = useSelector((state) => state.auth);
+  
+  const updateQuantity = async (cartItemId, newQuantity, selectedSizeId) => {
+    // Check if user is logged in
+    if (!user || !user.name) {
+      toast.warning("You are not logged in. Please login to update cart items.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      return;
+    }
+    
     if (newQuantity < 1) return;
-    dispatch(addItemToCart({ productId: cartItemId, quantity: newQuantity }));
+
+    try {
+      await dispatch(addItemToCart({
+        productId: cartItemId,
+        quantity: newQuantity,
+        ...(selectedSizeId != null && selectedSizeId !== "" && { selectedSizeId }),
+      })).unwrap();
+      toast.success("Cart updated successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (error) {
+      toast.error("Failed to update cart. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    }
   };
 
-  const removeItem = (cartItemId) => {
+  const removeItem = async (cartItemId) => {
     if (window.confirm("Are you sure you want to remove this item?")) {
-      dispatch(removeItemFromCart({ cartItemId }));
+      try {
+        await dispatch(removeItemFromCart({ cartItemId })).unwrap();
+        toast.success("Item removed from cart successfully!", {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      } catch (error) {
+        toast.error("Failed to remove item. Please try again.", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+      }
     }
   };
 
@@ -394,8 +456,23 @@ export default function Cart() {
     const validCoupons = { SAVE10: 10, SAVE20: 20, WELCOME15: 15 };
     if (validCoupons[couponCode]) {
       setDiscount(validCoupons[couponCode]);
+      toast.success(`Coupon "${couponCode}" applied! ${validCoupons[couponCode]}% discount.`, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } else if (couponCode) {
-      alert("Invalid coupon code");
+      toast.error("Invalid coupon code. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setDiscount(0);
     }
   };

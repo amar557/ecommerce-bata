@@ -8,7 +8,8 @@ import useFetchData from "../customHooks/useFetchData";
 import { useNavigationController } from "../../constants/navigation";
 import { toast } from "react-toastify";
 function AllProucts() {
-  const { data, deleteProduct } = useFetchData();
+  const { data: rawData, deleteProduct } = useFetchData();
+  const data = Array.isArray(rawData) ? rawData : [];
 
   const { navigateTo } = useNavigationController();
   const handleCopy = async (id) => {
@@ -60,7 +61,8 @@ function AllProucts() {
           </p>
           <p className="text-center w-20 capitalize font-semibold ">Options</p>
         </div>
-        {data.map((item, i) => (
+        {data && data.length > 0 ? (
+          data.map((item, i) => (
           <div className="flex  gap-4 bg-white w-full py-2 px-4 items-center  justify-between">
             <p className="text-center w-20 capitalize font-semibold ">
               {i + 1}
@@ -111,7 +113,10 @@ function AllProucts() {
               </button>
             </p>
           </div>
-        ))}
+          ))
+        ) : (
+          <div className="w-full py-8 text-center text-gray-500">No products found</div>
+        )}
       </div>
     </div>
   );

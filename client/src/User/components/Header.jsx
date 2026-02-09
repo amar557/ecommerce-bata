@@ -134,7 +134,10 @@ function Header() {
               <span>{user?.name ? user?.name : "login"}</span>
             </li>
             {user?.name && (
-              <li className="flex flex-col items-center  capitalize font-light">
+              <li
+                className="flex flex-col items-center capitalize font-light cursor-pointer hover:opacity-70 transition-opacity"
+                onClick={() => navigateTo("/track-order")}
+              >
                 <span className="text-lg">
                   <PiPoliceCarLight />
                 </span>
