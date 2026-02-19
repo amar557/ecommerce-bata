@@ -5,20 +5,16 @@ export default function InviteRedirect() {
   const { code } = useParams();
 
   useEffect(() => {
-    const deepLink = `myapp://invite/${code}`;
-console.log(code,'the code ')
-    const androidStore =
-      "https://play.google.com/store/apps/details?id=com.yourname.myapp";
-
-    const iosStore =
-      "https://apps.apple.com/app/idYOUR_APP_ID";
+    const deepLink = `gymapp.fitness://invite/${code}`;
+    const androidStore = "https://play.google.com/store/apps/details?id=com.gymapp.app";
+    const iosStore = "https://apps.apple.com/app/idYOUR_APP_ID";
 
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // Try opening the app
+    // Try opening app
     window.location.href = deepLink;
 
-    // If app not installed -> go store after 1.5 sec
+    // If app not installed -> redirect to store after 1.5s
     const timer = setTimeout(() => {
       window.location.href = isIOS ? iosStore : androidStore;
     }, 1500);
@@ -28,11 +24,11 @@ console.log(code,'the code ')
 
   return (
     <div style={{ padding: 30, fontFamily: "Arial", textAlign: "center" }}>
-      <h2>Opening App...</h2>
+      <h2>Opening Gym App...</h2>
       <p>If it doesn’t open automatically, click below.</p>
 
       <a
-        href={`myapp://invite/${code}`}
+        href={`gymapp.fitness://invite/${code}`}
         style={{
           display: "inline-block",
           marginTop: 20,
@@ -43,7 +39,7 @@ console.log(code,'the code ')
           textDecoration: "none"
         }}
       >
-        Open MyApp
+        Open Gym App
       </a>
     </div>
   );

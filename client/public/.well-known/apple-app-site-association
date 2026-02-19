@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TNR7GR68MT.com.gymapp.fitness.ios",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

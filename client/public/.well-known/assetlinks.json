@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.gymapp.app",
+      "sha256_cert_fingerprints": [
+        "03:BC:47:84:F8:10:5A:1F:33:A7:C4:42:D1:19:BF:C0:C6:F2:67:C3:03:8E:F2:00:5A:23:C2:F9:20:90:77:43"
+      ]
+    }
+  }
+]
