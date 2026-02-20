@@ -5,7 +5,8 @@ export default function InviteRedirect() {
   const { code } = useParams();
 
   useEffect(() => {
-    const deepLink = `gymapp.fitness://invite/${code}`;
+    const deepLink = `gymapp.fitness://auth/sign-up?referrerId=${code}`;
+    // gymapp.fitness://auth/sign-up?referrerId=b28fe42c-79bf-4f7d-91f8-edb7d5c25aab
     const androidStore = "https://play.google.com/store/apps/details?id=com.gymapp.app";
     const iosStore = "https://apps.apple.com/app/idYOUR_APP_ID";
 
