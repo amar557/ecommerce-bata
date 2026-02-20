@@ -49,9 +49,9 @@ function App() {
     // <Provider store={store}>
     <BrowserRouter>
       <Routes>
+          <Route path="/invite/:code" element={<InviteRedirect />} />
         <Route path="/" element={<UserLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/invite/:code" element={<InviteRedirect />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/cart" element={<Cart />} />
