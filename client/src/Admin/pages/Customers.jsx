@@ -9,7 +9,7 @@ function Customers() {
   return (
     <div className="mx-6 ">
       <div className="flex items-center my-2 justify-between w-full">
-        <h2 className="capitalize font-semibold text-xl">add product</h2>
+        <h2 className="capitalize font-semibold text-xl">Customer</h2>
         <button
           className="bg-black uppercase  rounded-sm text-white flex gap-1  py-2 px-4 items-center justify-center"
           onClick={() => navigate("/addcustomer")}

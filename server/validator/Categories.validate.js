@@ -5,6 +5,9 @@ export const listCategory = z.object({
 export const listbrand = z.object({
   brand: z.string().min(1, { message: "brand should not be empty" }),
 });
+export const listAccessory = z.object({
+  accessory: z.string().min(1, { message: "accessory should not be empty" }),
+});
 
 export const validate = (schema) => (req, res, next) => {
   try {

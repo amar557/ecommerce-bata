@@ -2,8 +2,6 @@ import { GoArrowLeft } from "react-icons/go";
 import { useNavigate } from "react-router";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
-import { storage } from "../firebase";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import Autocomplete from "@mui/material/Autocomplete";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
@@ -19,8 +17,8 @@ import {
   IconButton,
 } from "@mui/material";
 import { FiUploadCloud } from "react-icons/fi";
-import { MdDelete } from "react-icons/md";
-import { getBrands, getCategories } from "../Redux/Async/Asynch";
+import { MdClose, MdDelete } from "react-icons/md";
+import { getAccessories, getBrands, getCategories } from "../Redux/Async/Asynch";
 import { port } from "../../Data";
 import { toast } from "react-toastify";
 
@@ -28,12 +26,16 @@ function AddProduct() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState(null);
-  const [galleryImages, setGalleryImages] = useState(null);
+  const [galleryFiles, setGalleryFiles] = useState([]);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [galleryPreviews, setGalleryPreviews] = useState([]);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
     category: "",
     brand: "",
+    accessory: "",
     color: "",
     price: 0,
     offer: false,
@@ -44,81 +46,122 @@ function AddProduct() {
   });
 
   useEffect(() => {
-    if (galleryImages) {
-      handleDataSubmit();
+    if (!file) {
+      setThumbnailPreview(null);
+      return;
     }
-  }, [galleryImages]);
-
-  useEffect(() => {
-    if (file) {
-      handleThumbnailImage();
-    }
+    const url = URL.createObjectURL(file);
+    setThumbnailPreview(url);
+    return () => URL.revokeObjectURL(url);
   }, [file]);
 
-  async function handleThumbnailImage() {
-    setLoading(true);
-    const mainref = ref(storage, `thumbnail/${file.name + Date.now()}`);
-    try {
-      const uploadTask = await uploadBytes(mainref, file);
-      const downloadUrl = await getDownloadURL(uploadTask.ref);
-      setForm({ ...form, thumbnailImage: downloadUrl });
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!galleryFiles.length) {
+      setGalleryPreviews([]);
+      return;
     }
-  }
+    const urls = galleryFiles.map((f) => URL.createObjectURL(f));
+    setGalleryPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [galleryFiles]);
 
-  async function handleDataSubmit(e) {
-    setLoading(true);
-    let urls = [];
-    for (let i of galleryImages) {
-      if (!i.name) return;
-      const mainref = ref(storage, `imges/${i.name + Date.now()}`);
-      try {
-        console.log("askj");
-        const uploadTask = await uploadBytes(mainref, i);
-        const downloadUrl = await getDownloadURL(uploadTask.ref);
-        urls.push(downloadUrl);
-      } catch (error) {
-        console.error("Error uploading image:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    setForm({ ...form, images: urls });
-    console.log(form);
-    urls = [];
-    setLoading(false);
-  }
+  useEffect(() => {
+    if (!lightboxSrc) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") setLightboxSrc(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightboxSrc]);
+
+  const removeThumbnail = () => {
+    setFile(null);
+    if (thumbnailImg.current) thumbnailImg.current.value = "";
+  };
+
+  const removeGalleryImage = (index) => {
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async function (e) {
     e.preventDefault();
-    const api = await fetch(`${port}/api/item/listItem`, {
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-      method: "POST",
-    });
-    const res = await api.json();
-    toast.warn(res.warn);
-    toast.success(res.msg);
-    if (api.ok) {
-      setForm({
-        title: "",
-        description: "",
-        category: "",
-        brand: "",
-        color: "",
-        price: 0,
-        offer: false,
-        discountPrice: 0,
-        gender: "male",
-        thumbnailImage: "",
-        sizes: [],
-      });
+    if (!file) {
+      toast.error("Please select a thumbnail image");
+      return;
     }
-    console.log(res);
-    console.log(form);
+    if (galleryFiles.length === 0) {
+      toast.error("Please select at least one gallery image");
+      return;
+    }
+    if (!form.accessoryId) {
+      toast.error("Please select an accessory");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const thumbFd = new FormData();
+      thumbFd.append("image", file);
+      const thumbRes = await fetch(`${port}/api/upload/single`, {
+        method: "POST",
+        body: thumbFd,
+      });
+      const thumbData = await thumbRes.json();
+      if (!thumbRes.ok) {
+        throw new Error(thumbData.message || "Thumbnail upload failed");
+      }
+
+      const galFd = new FormData();
+      galleryFiles.forEach((f) => galFd.append("images", f));
+      const galRes = await fetch(`${port}/api/upload/multiple`, {
+        method: "POST",
+        body: galFd,
+      });
+      const galData = await galRes.json();
+      if (!galRes.ok) {
+        throw new Error(galData.message || "Gallery upload failed");
+      }
+
+      const payload = {
+        ...form,
+        thumbnailImage: thumbData.imageUrl,
+        images: galData.imageUrls,
+      };
+
+      const api = await fetch(`${port}/api/item/listItem`, {
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        method: "POST",
+      });
+      const res = await api.json();
+      toast.warn(res.warn);
+      toast.success(res.msg);
+      if (api.ok) {
+        setFile(null);
+        setGalleryFiles([]);
+        if (thumbnailImg.current) thumbnailImg.current.value = "";
+        if (galleryImgs.current) galleryImgs.current.value = "";
+        setForm({
+          title: "",
+          description: "",
+          category: "",
+          brand: "",
+          accessory: "",
+          color: "",
+          price: 0,
+          offer: false,
+          discountPrice: 0,
+          gender: "male",
+          thumbnailImage: "",
+          sizes: [],
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const thumbnailImg = useRef();
@@ -128,18 +171,25 @@ function AddProduct() {
   useEffect(() => {
     dispatch(getBrands());
     dispatch(getCategories());
-  }, []);
+    dispatch(getAccessories());
+  }, [dispatch]);
 
-  const { categories, brands } = useSelector((select) => select.Categories);
+  const { categories, brands, accessories } = useSelector(
+    (select) => select.Categories
+  );
 
   const handleAutocompleteChange = (event, value, type) => {
     if (type === "category" && categories && categories.length > 0) {
       const cat = categories.find((item) => item.category === value);
       setForm({ ...form, category: cat.category, categoryId: cat._id });
     } else if (type === "brand" && brands && brands.length > 0) {
-      const cat = brands.find((item) => item.brand === value);
-      console.log("brnads");
-      setForm({ ...form, brand: cat.brand, brandId: cat._id });
+      const b = brands.find((item) => item.brand === value);
+      setForm({ ...form, brand: b.brand, brandId: b._id });
+    } else if (type === "accessory" && accessories && accessories.length > 0) {
+      const a = accessories.find((item) => item.accessory === value);
+      if (a) {
+        setForm({ ...form, accessory: a.accessory, accessoryId: a._id });
+      }
     }
   };
 
@@ -189,8 +239,6 @@ function AddProduct() {
     setForm({ ...form, sizes: updatedSizes });
   };
 
-  console.log(form);
-
   return (
     <div className="px-6 bg-slate-100">
       <div className="flex items-center justify-between w-full">
@@ -204,7 +252,10 @@ function AddProduct() {
         </button>
       </div>
 
-      <form action="" className="w-1/2 mx-auto bg-white p-4 my-8">
+      <form
+        onSubmit={handleSubmit}
+        className="w-1/2 mx-auto bg-white p-4 my-8"
+      >
         <h1 className="text-xl font-semibold border-b py-4 capitalize">
           product information
         </h1>
@@ -238,8 +289,8 @@ function AddProduct() {
           onChange={handleChange}
           className="p-2 border rounded-md bg-slate-50 placeholder:capitalize block w-full outline-none "
         ></textarea>
-        <div className="flex w-full items-center justify-between gap-3 my-4">
-          <Stack className="grow">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 my-4">
+          <Stack className="grow min-w-[200px]">
             <label
               htmlFor=""
               className="block text-sm capitalize font-semibold my-2"
@@ -248,7 +299,6 @@ function AddProduct() {
             </label>
             <Autocomplete
               freeSolo
-              id="free-solo-2-demo"
               disableClearable
               className="grow rounded-md bg-slate-50"
               options={
@@ -262,7 +312,7 @@ function AddProduct() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Search input"
+                  label="Select category"
                   name="category"
                   value={form.category}
                   onChange={handleChange}
@@ -274,7 +324,7 @@ function AddProduct() {
               )}
             />
           </Stack>
-          <Stack className="grow">
+          <Stack className="grow min-w-[200px]">
             <label
               htmlFor=""
               className="block text-sm capitalize font-semibold my-2"
@@ -283,7 +333,6 @@ function AddProduct() {
             </label>
             <Autocomplete
               freeSolo
-              id="free-solo-2-demo"
               disableClearable
               className="grow rounded-md bg-slate-50"
               options={
@@ -297,12 +346,37 @@ function AddProduct() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Search input"
+                  label="Select brand"
                   value={form.brand}
                   InputProps={{
                     ...params.InputProps,
                     type: "search",
                   }}
+                />
+              )}
+            />
+          </Stack>
+
+          <Stack className="grow min-w-[200px]">
+            <label className="block text-sm capitalize font-semibold my-2">
+              accessory*
+            </label>
+            <Autocomplete
+              disableClearable
+              options={
+                accessories?.length > 0
+                  ? accessories.map((o) => o.accessory)
+                  : []
+              }
+              value={form.accessory || null}
+              onChange={(e, value) =>
+                handleAutocompleteChange(e, value, "accessory")
+              }
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Select accessory"
+                  placeholder="select accessory"
                 />
               )}
             />
@@ -467,9 +541,11 @@ function AddProduct() {
           </label>
           <input
             type="file"
-            name=""
-            id=""
-            onChange={(e) => setFile(e.target.files[0])}
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              setFile(f || null);
+            }}
             ref={thumbnailImg}
             hidden
           />
@@ -481,6 +557,32 @@ function AddProduct() {
             <FiUploadCloud />
             <span>select image</span>
           </label>
+          {thumbnailPreview && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-500 mb-1">Preview</p>
+              <div className="relative inline-block max-w-full">
+                <button
+                  type="button"
+                  onClick={removeThumbnail}
+                  className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow hover:bg-slate-50"
+                  aria-label="Remove thumbnail"
+                >
+                  <MdClose size={18} />
+                </button>
+                <img
+                  src={thumbnailPreview}
+                  alt="Thumbnail preview"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setLightboxSrc(thumbnailPreview)}
+                  onKeyDown={(ev) =>
+                    ev.key === "Enter" && setLightboxSrc(thumbnailPreview)
+                  }
+                  className="max-h-52 max-w-full cursor-zoom-in rounded-md border border-slate-200 object-contain bg-slate-50"
+                />
+              </div>
+            </div>
+          )}
         </div>
         <div>
           <label
@@ -491,10 +593,20 @@ function AddProduct() {
           </label>
           <input
             type="file"
-            name=""
-            id=""
+            accept="image/*"
             multiple
-            onChange={(e) => setGalleryImages(e.target.files)}
+            onChange={(e) => {
+              const picked = Array.from(e.target.files || []);
+              if (picked.length === 0) return;
+              setGalleryFiles((prev) => {
+                const next = [...prev, ...picked].slice(0, 6);
+                if (prev.length + picked.length > 6) {
+                  toast.info("Maximum 6 gallery images");
+                }
+                return next;
+              });
+              e.target.value = "";
+            }}
             ref={galleryImgs}
             hidden
           />
@@ -506,16 +618,74 @@ function AddProduct() {
             <FiUploadCloud />
             <span>select images</span>
           </label>
+          {galleryPreviews.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-slate-500 mb-2">Preview</p>
+              <div className="flex flex-wrap gap-3">
+                {galleryPreviews.map((src, i) => (
+                  <div
+                    key={`${galleryFiles[i]?.name}-${i}`}
+                    className="relative h-28 w-28 shrink-0"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => removeGalleryImage(i)}
+                      className="absolute -right-2 -top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow hover:bg-slate-50"
+                      aria-label={`Remove image ${i + 1}`}
+                    >
+                      <MdClose size={18} />
+                    </button>
+                    <img
+                      src={src}
+                      alt={`Gallery ${i + 1}`}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setLightboxSrc(src)}
+                      onKeyDown={(ev) =>
+                        ev.key === "Enter" && setLightboxSrc(src)
+                      }
+                      className="h-full w-full cursor-zoom-in rounded-md border border-slate-200 object-cover bg-slate-50"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <button
           className="w-full bg-black disabled:opacity-50 disabled:cursor-wait text-white py-2 rounded-md uppercase my-2"
           type="submit"
-          onClick={handleSubmit}
           disabled={loading}
         >
-          create list
+          {loading ? "Saving…" : "create list"}
         </button>
       </form>
+
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-6"
+          onClick={() => setLightboxSrc(null)}
+          role="presentation"
+        >
+          <button
+            type="button"
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-3xl text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLightboxSrc(null);
+            }}
+            aria-label="Close preview"
+          >
+            ×
+          </button>
+          <img
+            src={lightboxSrc}
+            alt=""
+            className="max-h-[90vh] max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

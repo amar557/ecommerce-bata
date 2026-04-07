@@ -1,35 +1,58 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import { PiUserLight } from "react-icons/pi";
-import { PiPoliceCarLight } from "react-icons/pi";
-import { PiHandbagSimpleThin } from "react-icons/pi";
-import { categoriesArray } from "../headerData";
+import { NavLink } from "react-router-dom";
+import { PiHandbagSimpleThin, PiPoliceCarLight, PiUserLight } from "react-icons/pi";
 import { useEffect, useState } from "react";
-import axiosInstance from "../../constants/axiosInstance";
-import AuthModal from "./AuthModal";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigationController } from "../../constants/navigation";
-import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
+import { fetchCart } from "../../Admin/Redux/Slices/cartSlice";
+import axiosInstance from "../../constants/axiosInstance";
+import { useNavigationController } from "../../constants/navigation";
+import { categoriesArray } from "../headerData";
+import AuthModal from "./AuthModal";
+
+/** Same filter semantics as the all-products page: gender + optional category/brand/accessory names in the query string. */
+function buildProductsUrl(gender, { category, brand, accessory } = {}) {
+  const params = new URLSearchParams();
+  params.set("gender", gender);
+  if (category) params.set("category", category);
+  if (brand) params.set("brand", brand);
+  if (accessory) params.set("accessory", accessory);
+  return `/products?${params.toString()}`;
+}
+
+/** Products page filtered by accessory name only (all genders). */
+function buildProductsAccessoryOnlyUrl(accessoryName) {
+  const params = new URLSearchParams();
+  params.set("accessory", accessoryName);
+  return `/products?${params.toString()}`;
+}
+
 function Header() {
   const [open, setOpen] = useState("");
-  const [male, setMale] = useState([]);
-  const [female, setFemale] = useState([]);
+  const [maleNav, setMaleNav] = useState({
+    categories: [],
+    brands: [],
+    accessories: [],
+  });
+  const [femaleNav, setFemaleNav] = useState({
+    categories: [],
+    brands: [],
+    accessories: [],
+  });
+  const [kidsNav, setKidsNav] = useState({
+    categories: [],
+    brands: [],
+    accessories: [],
+  });
   const { navigateTo } = useNavigationController();
   const dispatch = useDispatch();
-  const { loading, error, user } = useSelector((state) => state.auth);
+  const { user } = useSelector((state) => state.auth);
   const [authModal, setAuthModal] = useState({ isOpen: false, mode: "signin" });
-  const {
-    items,
-    error: cartError,
-    loading: cartLoading,
-  } = useSelector((state) => state.cart);
-  console.log(user);
-
+  const { items } = useSelector((state) => state.cart);
   const cartCount = items?.length || 0;
   const totalPrice = items?.reduce(
     (sum, item) =>
       sum +
-      (item?.productId.discountPrice < item?.productId.price
+      (item?.productId.discountPrice > item?.productId.price
         ? item?.productId.discountPrice
         : item?.productId.price) *
         item?.quantity,
@@ -38,10 +61,17 @@ function Header() {
   const getNavData = async (gender) => {
     try {
       const res = await axiosInstance.get(`/api/nav?gender=${gender}`);
-      return res.data;
+      const data = res.data;
+      return {
+        categories: Array.isArray(data?.categories) ? data.categories : [],
+        brands: Array.isArray(data?.brands) ? data.brands : [],
+        accessories: Array.isArray(data?.accessories)
+          ? data.accessories
+          : [],
+      };
     } catch (error) {
       console.error(`Error fetching ${gender} nav data:`, error);
-      return [];
+      return { categories: [], brands: [], accessories: [] };
     }
   };
 
@@ -57,12 +87,14 @@ function Header() {
 
   useEffect(() => {
     async function fetchData() {
-      const [maleData, femaleData] = await Promise.all([
+      const [maleData, femaleData, kidsData] = await Promise.all([
         getNavData("male"),
         getNavData("female"),
+        getNavData("kids"),
       ]);
-      setMale(maleData);
-      setFemale(femaleData);
+      setMaleNav(maleData);
+      setFemaleNav(femaleData);
+      setKidsNav(kidsData);
     }
     fetchData();
 
@@ -164,108 +196,283 @@ function Header() {
           </div>
         </div>
 
-        <ul className="flex items-center border-y border-slate-300 justify-start gap-3 px-8">
-          <li className="font-semibold text-base py-2 uppercase">
-            <NavLink className={"/man"}>man</NavLink>
-          </li>
+        <ul className="flex items-center border-y border-slate-300 justify-start gap-3 px-8 flex-wrap">
           <div
             className="relative"
             onMouseEnter={() => setOpen("male")}
             onMouseLeave={() => setOpen("")}
           >
-            <li className="font-semibold text-base py-2 uppercase">
-              <NavLink className={""}>man</NavLink>
+            <li className="font-semibold text-base py-2 uppercase list-none">
+              <NavLink
+                to={buildProductsUrl("male")}
+                className={({ isActive }) =>
+                  isActive ? "text-red-600" : "hover:text-slate-900"
+                }
+              >
+                man
+              </NavLink>
             </li>
-            {male && male.length > 0 && (
+            {(maleNav.categories.length > 0 ||
+              maleNav.brands.length > 0 ||
+              maleNav.accessories.length > 0) && (
               <div
-                className={`absolute flex items-start p-4 justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 ${
+                className={`absolute flex items-start p-4 justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
                   open === "male"
                     ? "opacity-100 z-10 visible"
                     : "opacity-0 -z-10 invisible"
                 }`}
               >
-                <div className="border-r">
+                <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     categories
                   </h3>
-                  {male &&
-                    male.length > 0 &&
-                    male.map((nested) => (
-                      <li
-                        className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-20  hover:bg-slate-200 cursor-pointer transition-all"
-                        key={nested.title}
+                  <li className="px-5 py-1 text-slate-500 text-sm list-none">
+                    <NavLink
+                      to={buildProductsUrl("male")}
+                      className="hover:text-red-600"
+                    >
+                      All products
+                    </NavLink>
+                  </li>
+                  {maleNav.categories.map((cat) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(cat._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("male", {
+                          category: cat.category,
+                        })}
                       >
-                        <NavLink to={nested}>{nested.category}</NavLink>
-                      </li>
-                    ))}
+                        {cat.category}
+                      </NavLink>
+                    </li>
+                  ))}
                 </div>
-                <div>
+                <div className="border-r border-slate-200 max-h-72 overflow-y-auto px-2 min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     brands
                   </h3>
-                  {male &&
-                    male.length > 0 &&
-                    male.map((nested) => (
-                      <li
-                        className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 cursor-pointer transition-all pe-20"
-                        key={nested.title}
+                  {maleNav.brands.map((b) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(b._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("male", { brand: b.brand })}
                       >
-                        <NavLink to={nested}>{nested.brand}</NavLink>
-                      </li>
-                    ))}
+                        {b.brand}
+                      </NavLink>
+                    </li>
+                  ))}
+                </div>
+                <div className="max-h-72 overflow-y-auto pl-2 min-w-[140px]">
+                  <h3 className="text-lg font-semibold px-5 capitalize mb-3">
+                    accessories
+                  </h3>
+                  {maleNav.accessories.map((a) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(a._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("male", {
+                          accessory: a.accessory,
+                        })}
+                      >
+                        {a.accessory}
+                      </NavLink>
+                    </li>
+                  ))}
                 </div>
               </div>
             )}
           </div>
+
           <div
             className="relative"
             onMouseEnter={() => setOpen("woman")}
             onMouseLeave={() => setOpen("")}
           >
-            <li className="font-semibold text-base py-2 uppercase">
-              <NavLink className={""}>woman</NavLink>
+            <li className="font-semibold text-base py-2 uppercase list-none">
+              <NavLink
+                to={buildProductsUrl("female")}
+                className={({ isActive }) =>
+                  isActive ? "text-red-600" : "hover:text-slate-900"
+                }
+              >
+                woman
+              </NavLink>
             </li>
-            {female && female.length > 0 && (
+            {(femaleNav.categories.length > 0 ||
+              femaleNav.brands.length > 0 ||
+              femaleNav.accessories.length > 0) && (
               <div
-                className={`absolute p-4 flex items-start justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 ${
+                className={`absolute p-4 flex items-start justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
                   open === "woman"
                     ? "opacity-100 z-10 visible"
                     : "opacity-0 -z-10 invisible"
                 }`}
               >
-                <div className="border-r">
+                <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     categories
                   </h3>
-                  {female &&
-                    female.length > 0 &&
-                    female.map((nested) => (
-                      <li
-                        className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 cursor-pointer transition-all pe-20"
-                        key={nested.title}
+                  <li className="px-5 py-1 text-slate-500 text-sm list-none">
+                    <NavLink
+                      to={buildProductsUrl("female")}
+                      className="hover:text-red-600"
+                    >
+                      All products
+                    </NavLink>
+                  </li>
+                  {femaleNav.categories.map((cat) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(cat._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("female", {
+                          category: cat.category,
+                        })}
                       >
-                        <NavLink to={nested}>{nested.category}</NavLink>
-                      </li>
-                    ))}
+                        {cat.category}
+                      </NavLink>
+                    </li>
+                  ))}
                 </div>
-                <div>
+                <div className="border-r border-slate-200 max-h-72 overflow-y-auto px-2 min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     brands
                   </h3>
-                  {female &&
-                    female.length > 0 &&
-                    female.map((nested) => (
-                      <li
-                        className="px-5 pe-20 py-1 text-slate-600 hover:text-slate-900 text-nowrap  hover:bg-slate-200 cursor-pointer transition-all"
-                        key={nested.title}
+                  {femaleNav.brands.map((b) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(b._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("female", { brand: b.brand })}
                       >
-                        <NavLink to={nested}>{nested.brand}</NavLink>
-                      </li>
-                    ))}
+                        {b.brand}
+                      </NavLink>
+                    </li>
+                  ))}
+                </div>
+                <div className="max-h-72 overflow-y-auto pl-2 min-w-[140px]">
+                  <h3 className="text-lg font-semibold px-5 capitalize mb-3">
+                    accessories
+                  </h3>
+                  {femaleNav.accessories.map((a) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(a._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("female", {
+                          accessory: a.accessory,
+                        })}
+                      >
+                        {a.accessory}
+                      </NavLink>
+                    </li>
+                  ))}
                 </div>
               </div>
             )}
           </div>
+
+          <div
+            className="relative"
+            onMouseEnter={() => setOpen("kids")}
+            onMouseLeave={() => setOpen("")}
+          >
+            <li className="font-semibold text-base py-2 uppercase list-none">
+              <NavLink
+                to={buildProductsUrl("kids")}
+                className={({ isActive }) =>
+                  isActive ? "text-red-600" : "hover:text-slate-900"
+                }
+              >
+                kids
+              </NavLink>
+            </li>
+            {(kidsNav.categories.length > 0 ||
+              kidsNav.brands.length > 0 ||
+              kidsNav.accessories.length > 0) && (
+              <div
+                className={`absolute flex items-start p-4 justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
+                  open === "kids"
+                    ? "opacity-100 z-10 visible"
+                    : "opacity-0 -z-10 invisible"
+                }`}
+              >
+                <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
+                  <h3 className="text-lg font-semibold px-5 capitalize mb-3">
+                    categories
+                  </h3>
+                  <li className="px-5 py-1 text-slate-500 text-sm list-none">
+                    <NavLink
+                      to={buildProductsUrl("kids")}
+                      className="hover:text-red-600"
+                    >
+                      All products
+                    </NavLink>
+                  </li>
+                  {kidsNav.categories.map((cat) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(cat._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("kids", {
+                          category: cat.category,
+                        })}
+                      >
+                        {cat.category}
+                      </NavLink>
+                    </li>
+                  ))}
+                </div>
+                <div className="border-r border-slate-200 max-h-72 overflow-y-auto px-2 min-w-[140px]">
+                  <h3 className="text-lg font-semibold px-5 capitalize mb-3">
+                    brands
+                  </h3>
+                  {kidsNav.brands.map((b) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(b._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("kids", { brand: b.brand })}
+                      >
+                        {b.brand}
+                      </NavLink>
+                    </li>
+                  ))}
+                </div>
+                <div className="max-h-72 overflow-y-auto pl-2 min-w-[140px]">
+                  <h3 className="text-lg font-semibold px-5 capitalize mb-3">
+                    accessories
+                  </h3>
+                  {kidsNav.accessories.map((a) => (
+                    <li
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-8 hover:bg-slate-100 cursor-pointer transition-all list-none"
+                      key={String(a._id)}
+                    >
+                      <NavLink
+                        to={buildProductsUrl("kids", {
+                          accessory: a.accessory,
+                        })}
+                      >
+                        {a.accessory}
+                      </NavLink>
+                    </li>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           {categoriesArray.map((item) => (
             <div
               className="relative"
@@ -273,10 +480,34 @@ function Header() {
               onMouseLeave={() => setOpen("")}
               key={item.title}
             >
-              <li className="font-semibold text-base py-2 uppercase">
-                <NavLink className={item.link}>{item.title}</NavLink>
+              <li className="font-semibold text-base py-2 uppercase list-none">
+                <NavLink to={item.link}>{item.title}</NavLink>
               </li>
-              {item.children && (
+              {item.dynamicAccessories &&
+                maleNav.accessories &&
+                maleNav.accessories.length > 0 && (
+                  <div
+                    className={`absolute top-10 left-1/2 -translate-x-1/2 bg-white border shadow-sm transition-all space-y-1 min-w-[200px] max-h-72 overflow-y-auto z-10 ${
+                      item.title === open
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible pointer-events-none"
+                    }`}
+                  >
+                    {maleNav.accessories.map((a) => (
+                      <li
+                        className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 transition-all list-none"
+                        key={String(a._id)}
+                      >
+                        <NavLink
+                          to={buildProductsAccessoryOnlyUrl(a.accessory)}
+                        >
+                          {a.accessory}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </div>
+                )}
+              {item.children && !item.dynamicAccessories && (
                 <div
                   className={`absolute top-10 left-1/2 -translate-x-1/2 bg-white border shadow-sm transition-all space-y-1 ${
                     item.title === open
@@ -286,7 +517,7 @@ function Header() {
                 >
                   {item.children.map((nested) => (
                     <li
-                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 transition-all"
+                      className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 transition-all list-none"
                       key={nested.title}
                     >
                       <NavLink to={nested.link}>{nested.title}</NavLink>

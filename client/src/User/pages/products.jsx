@@ -23,6 +23,7 @@ const FilterSidebar = ({
   setFilters,
   brands,
   categories,
+  accessories,
   colors,
   sizes,
   genderOptions,
@@ -44,6 +45,7 @@ const FilterSidebar = ({
     setFilters({
       brands: [],
       categories: [],
+      accessories: [],
       colors: [],
       sizes: [],
       gender: [],
@@ -128,6 +130,29 @@ const FilterSidebar = ({
                 className="w-4 h-4 text-red-600 rounded"
               />
               <span className="text-gray-700">{category.category}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+      )}
+
+      {/* Accessory Filter */}
+      {accessories?.length > 0 && (
+      <div className="border-b pb-4">
+        <h4 className="font-semibold text-gray-900 mb-3">Accessory</h4>
+        <div className="space-y-2 max-h-48 overflow-y-auto">
+          {accessories.map((acc) => (
+            <label
+              key={acc._id}
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={filters.accessories.includes(acc._id)}
+                onChange={() => toggleFilter("accessories", acc._id)}
+                className="w-4 h-4 text-red-600 rounded"
+              />
+              <span className="text-gray-700">{acc.accessory}</span>
             </label>
           ))}
         </div>
@@ -400,6 +425,7 @@ export default function ProductsPage() {
   const [filters, setFilters] = useState({
     brands: [],
     categories: [],
+    accessories: [],
     colors: [],
     sizes: [],
     gender: [],
@@ -437,6 +463,21 @@ const dynamicCategories = React.useMemo(() => {
     .map((p) => ({ _id: p.categoryId._id, category: p.categoryId.category || p.category }));
 }, [productsArray]);
 
+const dynamicAccessories = React.useMemo(() => {
+  const seen = new Set();
+  return productsArray
+    .filter(
+      (p) =>
+        p.accessoryId?._id &&
+        !seen.has(p.accessoryId._id) &&
+        (seen.add(p.accessoryId._id), true)
+    )
+    .map((p) => ({
+      _id: p.accessoryId._id,
+      accessory: p.accessoryId.accessory || p.accessory,
+    }));
+}, [productsArray]);
+
 const dynamicColors = React.useMemo(() => {
   return [...new Set(productsArray.map((p) => p.color).filter(Boolean))];
 }, [productsArray]);
@@ -472,27 +513,66 @@ const dynamicPriceRanges = React.useMemo(() => {
   ];
 }, [productsArray]);
 
-// 🧩 Sync filters from URL (e.g. /products?gender=male or ?category=Sports)
+// Sync filters from URL (navbar & links): ?gender=&category=&brand=&accessory=&offer=
 useEffect(() => {
   const gender = searchParams.get("gender");
   const categoryName = searchParams.get("category");
+  const brandName = searchParams.get("brand");
+  const accessoryName = searchParams.get("accessory");
+  const offerParam = searchParams.get("offer");
+
+  if (
+    !gender &&
+    !categoryName &&
+    !brandName &&
+    !accessoryName &&
+    offerParam == null
+  ) {
+    return;
+  }
+
   setFilters((prev) => {
     const next = { ...prev };
+
     if (gender) {
       next.gender = [gender];
-      next.categories = [];
-    } else if (categoryName && dynamicCategories.length > 0) {
+    } else {
+      next.gender = [];
+    }
+
+    next.onlyOffers =
+      offerParam === "true" || offerParam === "1";
+
+    if (categoryName && dynamicCategories.length > 0) {
       const cat = dynamicCategories.find(
         (c) => c.category?.toLowerCase() === categoryName.toLowerCase()
       );
-      if (cat) {
-        next.categories = [cat._id];
-        next.gender = [];
-      }
+      next.categories = cat ? [cat._id] : [];
+    } else if (!categoryName) {
+      next.categories = [];
     }
+
+    if (brandName && dynamicBrands.length > 0) {
+      const b = dynamicBrands.find(
+        (x) => x.brand?.toLowerCase() === brandName.toLowerCase()
+      );
+      next.brands = b ? [b._id] : [];
+    } else if (!brandName) {
+      next.brands = [];
+    }
+
+    if (accessoryName && dynamicAccessories.length > 0) {
+      const a = dynamicAccessories.find(
+        (x) => x.accessory?.toLowerCase() === accessoryName.toLowerCase()
+      );
+      next.accessories = a ? [a._id] : [];
+    } else if (!accessoryName) {
+      next.accessories = [];
+    }
+
     return next;
   });
-}, [searchParams, dynamicCategories]);
+}, [searchParams, dynamicCategories, dynamicBrands, dynamicAccessories]);
 
 // 🧩 Filter products safely
 const filteredProducts = productsArray.filter((product) => {
@@ -505,6 +585,12 @@ const filteredProducts = productsArray.filter((product) => {
   if (
     filters.categories.length > 0 &&
     !filters.categories.includes(product.categoryId?._id)
+  )
+    return false;
+
+  if (
+    filters.accessories.length > 0 &&
+    !filters.accessories.includes(product.accessoryId?._id)
   )
     return false;
 
@@ -584,6 +670,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
             setFilters={setFilters}
             brands={dynamicBrands}
             categories={dynamicCategories}
+            accessories={dynamicAccessories}
             colors={dynamicColors}
             sizes={dynamicSizes}
             genderOptions={dynamicGenders}
@@ -668,6 +755,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                     setFilters({
                       brands: [],
                       categories: [],
+                      accessories: [],
                       colors: [],
                       sizes: [],
                       gender: [],

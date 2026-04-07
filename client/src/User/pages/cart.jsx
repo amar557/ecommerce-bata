@@ -33,7 +33,8 @@ const CartItem = ({
   quantity,
   cart: cartItem,
 }) => {
-  const hasDiscount = item.discountPrice < item.price;
+  console.log(item,'t;he item ')
+  const hasDiscount = item?.offer;
   const itemPrice = hasDiscount ? item.discountPrice : item.price;
   const itemTotal = itemPrice * quantity;
   const selectedSizeObj = item?.sizes && cartItem?.selectedSizeId
@@ -158,7 +159,7 @@ const OrderSummary = ({
 }) => {
   const subtotal = cartItems.reduce((sum, cartItem) => {
     let item= cartItem?.productId
-    const price = item.discountPrice < item.price ? item.discountPrice : item.price;
+    const price = item.discountPrice > item.price ? item.discountPrice : item.price;
     return sum + price * cartItem.quantity;
   }, 0);
   // const {navigateTo}=useNavigationController()

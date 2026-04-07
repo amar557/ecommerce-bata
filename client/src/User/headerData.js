@@ -1,57 +1,56 @@
+/**
+ * Static nav groups. "Accessories" children are rendered in Header from the Accessory API.
+ * Super Sale links go to /products with offer + optional gender filters.
+ */
 export const categoriesArray = [
-  {
-    title: "Bags",
-    link: "/bags",
-    children: [
-      { title: "Red Label", link: "/bags/red-label" },
-      { title: "Prive", link: "/bags/prive" },
-      { title: "Power", link: "/bags/power" },
-      { title: "NorthStar", link: "/bags/northstar" },
-      { title: "Laptop Bags", link: "/bags/laptop-bags" },
-      { title: "B-first", link: "/bags/b-first" },
-      { title: "School Bags", link: "/bags/school-bags" },
-    ],
-  },
+  // {
+  //   title: "Bags",
+  //   link: "/bags",
+  //   children: [
+  //     { title: "Red Label", link: "/bags/red-label" },
+  //     { title: "Prive", link: "/bags/prive" },
+  //     { title: "Power", link: "/bags/power" },
+  //     { title: "NorthStar", link: "/bags/northstar" },
+  //     { title: "Laptop Bags", link: "/bags/laptop-bags" },
+  //     { title: "B-first", link: "/bags/b-first" },
+  //     { title: "School Bags", link: "/bags/school-bags" },
+  //   ],
+  // },
   {
     title: "Accessories",
-    link: "/accessories",
-    children: [
-      { title: "Wallets", link: "/accessories/wallets" },
-      { title: "Bags", link: "/accessories/bags" },
-      { title: "Belts", link: "/accessories/belts" },
-      { title: "Shoe care", link: "/accessories/shoe-care" },
-      { title: "Socks", link: "/accessories/socks" },
-    ],
+    link: "/products",
+    /** Header.jsx fills dropdown from GET /api/nav (accessory catalog) */
+    dynamicAccessories: true,
   },
   {
     title: "Super Sale",
-    link: "/super-sale",
+    link: "/products?offer=true",
     children: [
-      { title: "Men", link: "/super-sale/men" },
-      { title: "Women", link: "/super-sale/women" },
-      { title: "Kids", link: "/super-sale/kids" },
+      { title: "Men", link: "/products?gender=male&offer=true" },
+      { title: "Women", link: "/products?gender=female&offer=true" },
+      { title: "Kids", link: "/products?gender=kids&offer=true" },
     ],
   },
-  {
-    title: "Bata Club",
-    link: "/bata-club",
-  },
-  {
-    title: "B-mag",
-    link: "/b-mag",
-  },
-  {
-    title: "Bata Industrials",
-    link: "/bata-industrials",
-    children: [
-      {
-        title: "About",
-        link: "/about",
-      },
-      {
-        title: "Collection",
-        link: "/collection",
-      },
-    ],
-  },
+  // {
+  //   title: "Bata Club",
+  //   link: "/bata-club",
+  // },
+  // {
+  //   title: "B-mag",
+  //   link: "/b-mag",
+  // },
+  // {
+  //   title: "Bata Industrials",
+  //   link: "/bata-industrials",
+  //   children: [
+  //     {
+  //       title: "About",
+  //       link: "/about",
+  //     },
+  //     {
+  //       title: "Collection",
+  //       link: "/collection",
+  //     },
+  //   ],
+  // },
 ];

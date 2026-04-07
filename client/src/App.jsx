@@ -13,6 +13,8 @@ import Login from "./Admin/pages/Login";
 import { useEffect, useState } from "react";
 import UpdateCategory from "./Admin/pages/UpdateCategory";
 import UpdateBrand from "./Admin/pages/UpdateBrand";
+import Accessories from "./Admin/pages/Accessories";
+import UpdateAccessory from "./Admin/pages/UpdateAccessory";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserLayout from "./User/pages/UserLayout";
@@ -73,6 +75,8 @@ function App() {
           <Route path="update/category/:id" element={<UpdateCategory />} />
           <Route path="brands" element={<Brands />} />
           <Route path="update/brand/:id" element={<UpdateBrand />} />
+          <Route path="accessories" element={<Accessories />} />
+          <Route path="update/accessory/:id" element={<UpdateAccessory />} />
           <Route path="customers" element={<Customers />} />
           <Route path="addcustomer" element={<AddCustomer />} />
           <Route path="profile" element={<Profile />} />

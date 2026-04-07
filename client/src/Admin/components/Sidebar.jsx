@@ -57,9 +57,11 @@ const Sidebar = () => {
               isActive("/admin/add-product") || 
               isActive("/admin/brands") || 
               isActive("/admin/categories") ||
+              isActive("/admin/accessories") ||
               isActive("/admin/update-product") ||
               isActive("/admin/update/category") ||
-              isActive("/admin/update/brand")
+              isActive("/admin/update/brand") ||
+              isActive("/admin/update/accessory")
                 ? "text-white" : ""
             }`}
           >
@@ -121,6 +123,16 @@ const Sidebar = () => {
             >
               <button className="block p-2 w-full capitalize text-start">
                 categories
+              </button>
+            </li>
+            <li
+              className={`hover:text-white capitalize ${
+                isActive("/admin/accessories") ? "text-white" : ""
+              }`}
+              onClick={() => navigate("/admin/accessories")}
+            >
+              <button className="block p-2 w-full capitalize text-start">
+                accessories
               </button>
             </li>
           </ul>

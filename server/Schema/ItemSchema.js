@@ -102,6 +102,15 @@ const itemSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Brand",
     },
+    accessory: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    accessoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Accessory",
+    },
     color: {
       type: String,
       required: [true, "Color is required"],
@@ -183,6 +192,7 @@ itemSchema.virtual("totalStock").get(function () {
 itemSchema.index({ gender: 1 });
 itemSchema.index({ categoryId: 1 });
 itemSchema.index({ brandId: 1 });
+itemSchema.index({ accessoryId: 1 });
 itemSchema.index({ offer: 1 });
 itemSchema.index({ createdAt: -1 });
 itemSchema.index({ gender: 1, categoryId: 1 });

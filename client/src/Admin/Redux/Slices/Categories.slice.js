@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { getBrands, getCategories } from "../Async/Asynch";
+import { getAccessories, getBrands, getCategories } from "../Async/Asynch";
 
 const categories = createSlice({
   name: "brandsandCategory",
@@ -8,6 +8,7 @@ const categories = createSlice({
     loading: false,
     err: "",
     brands: [],
+    accessories: [],
   },
   extraReducers: (builder) => {
     builder.addCase(getCategories.pending, (state, action) => {
@@ -29,6 +30,17 @@ const categories = createSlice({
     });
     builder.addCase(getBrands.rejected, (state, action) => {
       state.err = action.payload;
+    });
+    builder.addCase(getAccessories.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(getAccessories.fulfilled, (state, action) => {
+      state.accessories = action.payload || [];
+      state.loading = false;
+    });
+    builder.addCase(getAccessories.rejected, (state, action) => {
+      state.err = action.payload;
+      state.loading = false;
     });
   },
 });

@@ -1,5 +1,6 @@
 import brandSchema from "../Schema/brandSchema.js";
 import categorySchema from "../Schema/categorySchema.js";
+import accessorySchema from "../Schema/accessorySchema.js";
 import ListItem from "../Schema/ItemSchema.js";
 export const ListCategories = async function (req, res, next) {
   const createdCat = await categorySchema(req.body);
@@ -77,7 +78,7 @@ export const deleteItem = async function (req, res, next) {
 
 export const getAllItems = async (req, res, next) => {
   try {
-    const { gender, category, offer, minPrice, maxPrice } = req.query;
+    const { gender, category, accessory, offer, minPrice, maxPrice } = req.query;
     const filter = { isActive: { $ne: false } };
 
     if (gender && typeof gender === "string") {
@@ -88,6 +89,12 @@ export const getAllItems = async (req, res, next) => {
         category: { $regex: new RegExp(`^${category.trim()}`, "i") },
       });
       if (cat) filter.categoryId = cat._id;
+    }
+    if (accessory && typeof accessory === "string") {
+      const acc = await accessorySchema.findOne({
+        accessory: { $regex: new RegExp(`^${accessory.trim()}`, "i") },
+      });
+      if (acc) filter.accessoryId = acc._id;
     }
     if (offer === "true" || offer === "1") {
       filter.offer = true;
@@ -105,7 +112,8 @@ export const getAllItems = async (req, res, next) => {
 
     const items = await ListItem.find(filter)
       .populate("categoryId", "category")
-      .populate("brandId", "brand");
+      .populate("brandId", "brand")
+      .populate("accessoryId", "accessory");
 
     if (!items || items.length === 0) {
       return res.status(200).json({ items: [] });
@@ -135,6 +143,7 @@ export const searchItems = async (req, res, next) => {
       .sort({ score: { $meta: "textScore" } })
       .populate("categoryId", "category")
       .populate("brandId", "brand")
+      .populate("accessoryId", "accessory")
       .limit(50);
     res.status(200).json(items);
   } catch (error) {
@@ -156,7 +165,10 @@ export const getAllCategories = async function (req, res, next) {
 };
 export const getItem = async function (req, res, next) {
   const id = req.params.id;
-  const item = await ListItem.findById(id);
+  const item = await ListItem.findById(id)
+    .populate("categoryId", "category")
+    .populate("brandId", "brand")
+    .populate("accessoryId", "accessory");
   res.status(200).send(item);
 };
 export const deleteCategory = async function (req, res, next) {
@@ -194,4 +206,32 @@ export const updateBrand = async (req, res, next) => {
     new: true,
   });
   res.status(200).send(updatedBrand);
+};
+
+export const ListAccessories = async function (req, res, next) {
+  const created = await accessorySchema(req.body);
+  created.save();
+  res.status(200).send({ msg: created });
+};
+export const getAllAccessories = async function (req, res, next) {
+  const list = await accessorySchema.find();
+  res.status(200).send(list);
+};
+export const getSingleAccessory = async (req, res, next) => {
+  const id = req.params.id;
+  const doc = await accessorySchema.findById(id);
+  if (doc) res.status(200).send(doc);
+  else res.status(404).send({ msg: "Not found" });
+};
+export const updateAccessory = async function (req, res, next) {
+  const id = req.params.id;
+  const updated = await accessorySchema.findByIdAndUpdate(id, req.body, {
+    new: true,
+  });
+  res.status(200).send(updated);
+};
+export const deleteAccessory = async function (req, res, next) {
+  const id = req.params.id;
+  await accessorySchema.findByIdAndDelete(id);
+  res.status(200).send({ msg: "item deleted successfully" });
 };

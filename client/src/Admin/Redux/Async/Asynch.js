@@ -25,6 +25,32 @@ export const getCategories = createAsyncThunk("get/categories", async (e) => {
   return inJson;
 });
 
+export const getAccessories = createAsyncThunk(
+  "get/accessories",
+  async () => {
+    const api = await fetch(`${port}/api/get/accessories`, {
+      method: "GET",
+    });
+    if (api.ok) {
+      return await api.json();
+    }
+    return [];
+  }
+);
+
+export const deleteAccessoryItem = createAsyncThunk(
+  "deleteAccessoryItem",
+  async (id, { dispatch }) => {
+    const res = await fetch(`${port}/api/delete/accessory/${id}`, {
+      method: "DELETE",
+    });
+    if (res.ok) {
+      dispatch(getAccessories());
+    }
+    return res.json();
+  }
+);
+
 export const getBrands = createAsyncThunk("list/brand", async (brand) => {
   try {
     const list = await fetch(`${port}/api/get/brands`, {

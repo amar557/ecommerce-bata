@@ -1,5 +1,7 @@
 import express from "express";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 import route from "./Routes/api.route.js";
 import Categories from "./Routes/categories.route.js";
 import cartRoutes from "./Routes/cartRoutes.js";
@@ -7,7 +9,10 @@ import authRouter from "./Routes/Auth.route.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dynamicNavbar from "./Routes/dynamicNavbar.js";
+import uploadRouter from "./Routes/upload.route.js";
 import { verifyToken } from "./middlewares/verifyToken.mdw.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(express.json());
@@ -25,6 +30,8 @@ app.use((req, res, next) => {
 
 app.use(cookieParser());
 app.use(cors(corsOptions));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/upload", uploadRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/item", route);
 app.use("/api", Categories);
@@ -41,6 +48,6 @@ mongoose
   })
   .catch((err) => console.log(err));
 
-app.listen(3000, () => {
+app.listen(3001, () => {
   console.log("running");
 });
