@@ -4,6 +4,8 @@ import { MdDashboard } from "react-icons/md";
 import { useNavigate, useLocation } from "react-router";
 import { MdShoppingCart } from "react-icons/md";
 import { FaArrowTrendUp } from "react-icons/fa6";
+import logo from "../../assets/logo2.png";
+
 const Sidebar = () => {
   const [openMenu, setOpenMenu] = useState(null);
   const navigate = useNavigate();
@@ -19,6 +21,14 @@ const Sidebar = () => {
 
   return (
     <div className="w-64 h-screen overflow-y-scroll bg-gray-800 text-secondary1 fixed">
+      <div className="px-4 py-5 border-b border-gray-700">
+        <img
+          src={logo}
+          alt="Bata"
+          className="h-[4rem] w-auto cursor-pointer"
+          onClick={() => navigate("/admin")}
+        />
+      </div>
       <ul>
         <button
           onClick={() => {

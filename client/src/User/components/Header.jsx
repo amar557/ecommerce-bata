@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { PiHandbagSimpleThin, PiPoliceCarLight, PiUserLight } from "react-icons/pi";
+import { PiGearSixLight, PiHandbagSimpleThin, PiPoliceCarLight, PiUserLight } from "react-icons/pi";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -8,6 +8,8 @@ import axiosInstance from "../../constants/axiosInstance";
 import { useNavigationController } from "../../constants/navigation";
 import { categoriesArray } from "../headerData";
 import AuthModal from "./AuthModal";
+import logo from "../../assets/logo2.png";
+
 
 /** Same filter semantics as the all-products page: gender + optional category/brand/accessory names in the query string. */
 function buildProductsUrl(gender, { category, brand, accessory } = {}) {
@@ -75,16 +77,6 @@ function Header() {
     }
   };
 
-  const getCartTotal = async () => {
-    try {
-      // const res = await axiosInstance.get("/api/cart/total");
-      dispatch(fetchCart());
-      // setCartTotal(res.data.total || 0);
-    } catch (error) {
-      console.error("Error fetching cart total:", error);
-    }
-  };
-
   useEffect(() => {
     async function fetchData() {
       const [maleData, femaleData, kidsData] = await Promise.all([
@@ -97,9 +89,8 @@ function Header() {
       setKidsNav(kidsData);
     }
     fetchData();
-
-    getCartTotal();
-  }, []);
+    dispatch(fetchCart());
+  }, [dispatch]);
 
   const handleAuthClick = () => {
     if (user?.name) {
@@ -143,15 +134,15 @@ function Header() {
         <div className="flex py-2 items-center justify-end relative">
           <img
             onClick={() => navigateTo("/")}
-            src="https://www.bata.com.pk/cdn/shop/files/Bata-logo_1.png?v=1686635439&width=500"
-            alt=""
-            className="h-10 w-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 "
+            src={logo}
+            alt="Bata"
+            className="h-[4rem] w-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer"
           />
-          <div className="flex text-sm items-center justify-between pe-8  w-[30%]">
+          <div className="flex text-sm items-center gap-4 pe-8 relative z-10">
             <img
-              src="https://www.bata.com.pk/cdn/shop/files/Asset_1.png?v=1695707853"
-              alt=""
-              className="h-8 w-auto "
+              src={logo}
+              alt="Bata"
+              className="h-[4rem] w-auto"
             />
             <li className="uppercase font-light border-b border-black list-none  ">
               <NavLink>help</NavLink>
@@ -165,6 +156,17 @@ function Header() {
               </span>
               <span>{user?.name ? user?.name : "login"}</span>
             </li>
+            {user?.admin && (
+              <li
+                className="flex flex-col items-center capitalize font-light cursor-pointer hover:opacity-70 transition-opacity"
+                onClick={() => navigateTo("/admin")}
+              >
+                <span className="text-lg">
+                  <PiGearSixLight />
+                </span>
+                <span>admin</span>
+              </li>
+            )}
             {user?.name && (
               <li
                 className="flex flex-col items-center capitalize font-light cursor-pointer hover:opacity-70 transition-opacity"
@@ -185,18 +187,18 @@ function Header() {
                 <PiHandbagSimpleThin />
 
                 {cartCount > 0 && (
-                  <span className="absolute -top-3 -right-3 bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-3 -right-3 bg-deepRed-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
               </span>
 
-              <span>Rs. {totalPrice}</span>
+              <span>PKR {totalPrice}</span>
             </li>
           </div>
         </div>
 
-        <ul className="flex items-center border-y border-slate-300 justify-start gap-3 px-8 flex-wrap">
+        <ul className="relative z-20 flex items-center border-y border-slate-300 justify-start gap-3 px-8 flex-wrap overflow-visible">
           <div
             className="relative"
             onMouseEnter={() => setOpen("male")}
@@ -206,22 +208,17 @@ function Header() {
               <NavLink
                 to={buildProductsUrl("male")}
                 className={({ isActive }) =>
-                  isActive ? "text-red-600" : "hover:text-slate-900"
+                  isActive ? "text-deepRed-600" : "hover:text-slate-900"
                 }
               >
                 man
               </NavLink>
             </li>
-            {(maleNav.categories.length > 0 ||
-              maleNav.brands.length > 0 ||
-              maleNav.accessories.length > 0) && (
-              <div
-                className={`absolute flex items-start p-4 justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
-                  open === "male"
-                    ? "opacity-100 z-10 visible"
-                    : "opacity-0 -z-10 invisible"
-                }`}
-              >
+            {open === "male" &&
+              (maleNav.categories.length > 0 ||
+                maleNav.brands.length > 0 ||
+                maleNav.accessories.length > 0) && (
+              <div className="absolute left-0 top-full z-50 flex items-start p-4 justify-start bg-white border shadow-md space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap">
                 <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     categories
@@ -229,7 +226,7 @@ function Header() {
                   <li className="px-5 py-1 text-slate-500 text-sm list-none">
                     <NavLink
                       to={buildProductsUrl("male")}
-                      className="hover:text-red-600"
+                      className="hover:text-deepRed-600"
                     >
                       All products
                     </NavLink>
@@ -298,22 +295,17 @@ function Header() {
               <NavLink
                 to={buildProductsUrl("female")}
                 className={({ isActive }) =>
-                  isActive ? "text-red-600" : "hover:text-slate-900"
+                  isActive ? "text-deepRed-600" : "hover:text-slate-900"
                 }
               >
                 woman
               </NavLink>
             </li>
-            {(femaleNav.categories.length > 0 ||
-              femaleNav.brands.length > 0 ||
-              femaleNav.accessories.length > 0) && (
-              <div
-                className={`absolute p-4 flex items-start justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
-                  open === "woman"
-                    ? "opacity-100 z-10 visible"
-                    : "opacity-0 -z-10 invisible"
-                }`}
-              >
+            {open === "woman" &&
+              (femaleNav.categories.length > 0 ||
+                femaleNav.brands.length > 0 ||
+                femaleNav.accessories.length > 0) && (
+              <div className="absolute left-0 top-full z-50 flex items-start p-4 justify-start bg-white border shadow-md space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap">
                 <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     categories
@@ -321,7 +313,7 @@ function Header() {
                   <li className="px-5 py-1 text-slate-500 text-sm list-none">
                     <NavLink
                       to={buildProductsUrl("female")}
-                      className="hover:text-red-600"
+                      className="hover:text-deepRed-600"
                     >
                       All products
                     </NavLink>
@@ -390,22 +382,17 @@ function Header() {
               <NavLink
                 to={buildProductsUrl("kids")}
                 className={({ isActive }) =>
-                  isActive ? "text-red-600" : "hover:text-slate-900"
+                  isActive ? "text-deepRed-600" : "hover:text-slate-900"
                 }
               >
                 kids
               </NavLink>
             </li>
-            {(kidsNav.categories.length > 0 ||
-              kidsNav.brands.length > 0 ||
-              kidsNav.accessories.length > 0) && (
-              <div
-                className={`absolute flex items-start p-4 justify-start top-10 left-1/2 -translate-x-1/3 bg-white border shadow-sm transition-all space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap ${
-                  open === "kids"
-                    ? "opacity-100 z-10 visible"
-                    : "opacity-0 -z-10 invisible"
-                }`}
-              >
+            {open === "kids" &&
+              (kidsNav.categories.length > 0 ||
+                kidsNav.brands.length > 0 ||
+                kidsNav.accessories.length > 0) && (
+              <div className="absolute left-0 top-full z-50 flex items-start p-4 justify-start bg-white border shadow-md space-y-1 min-w-[min(100vw-2rem,520px)] max-w-[90vw] flex-wrap sm:flex-nowrap">
                 <div className="border-r border-slate-200 pr-2 max-h-72 overflow-y-auto min-w-[140px]">
                   <h3 className="text-lg font-semibold px-5 capitalize mb-3">
                     categories
@@ -413,7 +400,7 @@ function Header() {
                   <li className="px-5 py-1 text-slate-500 text-sm list-none">
                     <NavLink
                       to={buildProductsUrl("kids")}
-                      className="hover:text-red-600"
+                      className="hover:text-deepRed-600"
                     >
                       All products
                     </NavLink>
@@ -484,15 +471,9 @@ function Header() {
                 <NavLink to={item.link}>{item.title}</NavLink>
               </li>
               {item.dynamicAccessories &&
-                maleNav.accessories &&
-                maleNav.accessories.length > 0 && (
-                  <div
-                    className={`absolute top-10 left-1/2 -translate-x-1/2 bg-white border shadow-sm transition-all space-y-1 min-w-[200px] max-h-72 overflow-y-auto z-10 ${
-                      item.title === open
-                        ? "opacity-100 visible"
-                        : "opacity-0 invisible pointer-events-none"
-                    }`}
-                  >
+                open === item.title &&
+                maleNav.accessories?.length > 0 && (
+                  <div className="absolute left-0 top-full z-50 bg-white border shadow-md space-y-1 min-w-[200px] max-h-72 overflow-y-auto">
                     {maleNav.accessories.map((a) => (
                       <li
                         className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 transition-all list-none"
@@ -507,14 +488,10 @@ function Header() {
                     ))}
                   </div>
                 )}
-              {item.children && !item.dynamicAccessories && (
-                <div
-                  className={`absolute top-10 left-1/2 -translate-x-1/2 bg-white border shadow-sm transition-all space-y-1 ${
-                    item.title === open
-                      ? "opacity-100 z-10 visible"
-                      : "opacity-0 -z-10 invisible"
-                  }`}
-                >
+              {item.children &&
+                !item.dynamicAccessories &&
+                open === item.title && (
+                <div className="absolute left-0 top-full z-50 bg-white border shadow-md space-y-1">
                   {item.children.map((nested) => (
                     <li
                       className="px-5 py-1 text-slate-600 hover:text-slate-900 text-nowrap pe-10 hover:bg-slate-200 transition-all list-none"

@@ -59,7 +59,7 @@ function Customers() {
               <TbEdit />
             </button>
 
-            <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-red-100 text-red-500">
+            <button className="text-sm h-6 grid place-items-center w-6 rounded-full bg-deepRed-100 text-deepRed-500">
               <RiDeleteBin6Line />
             </button>
           </p>

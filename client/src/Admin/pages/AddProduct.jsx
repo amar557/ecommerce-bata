@@ -102,7 +102,7 @@ function AddProduct() {
     try {
       const thumbFd = new FormData();
       thumbFd.append("image", file);
-      const thumbRes = await fetch(`${port}/api/upload/single`, {
+      const thumbRes = await fetch(`${port}/api/upload/single?folder=products`, {
         method: "POST",
         body: thumbFd,
       });
@@ -113,7 +113,7 @@ function AddProduct() {
 
       const galFd = new FormData();
       galleryFiles.forEach((f) => galFd.append("images", f));
-      const galRes = await fetch(`${port}/api/upload/multiple`, {
+      const galRes = await fetch(`${port}/api/upload/multiple?folder=products`, {
         method: "POST",
         body: galFd,
       });

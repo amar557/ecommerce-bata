@@ -1,12 +1,15 @@
 import { z } from "zod";
 export const listCategory = z.object({
   category: z.string().min(1, { message: "category should not be empty" }),
+  image: z.string().optional().default(""),
 });
 export const listbrand = z.object({
   brand: z.string().min(1, { message: "brand should not be empty" }),
+  image: z.string().optional().default(""),
 });
 export const listAccessory = z.object({
   accessory: z.string().min(1, { message: "accessory should not be empty" }),
+  image: z.string().optional().default(""),
 });
 
 export const validate = (schema) => (req, res, next) => {

@@ -43,13 +43,17 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["card", "upi", "wallet", "netbanking", "cod"],
+      enum: ["cod", "stripe"],
       default: "cod",
     },
     paymentStatus: {
       type: String,
       enum: ["paid", "unpaid"],
       default: "unpaid",
+    },
+    stripeSessionId: {
+      type: String,
+      default: null,
     },
     totalAmount: { type: Number },
   },

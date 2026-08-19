@@ -87,7 +87,7 @@ function UpdateItem() {
     const formData = new FormData();
     formData.append("image", file);
     try {
-      const res = await fetch(`${port}/api/upload/single`, {
+      const res = await fetch(`${port}/api/upload/single?folder=products`, {
         method: "POST",
         body: formData,
       });
@@ -114,7 +114,7 @@ function UpdateItem() {
       return;
     }
     try {
-      const res = await fetch(`${port}/api/upload/multiple`, {
+      const res = await fetch(`${port}/api/upload/multiple?folder=products`, {
         method: "POST",
         body: formData,
       });
@@ -553,7 +553,7 @@ function UpdateItem() {
           <div className="relative h-20 w-20">
             <img src={form.thumbnailImage} className="w-full h-auto" alt="" />
             <button
-              className="bg-white flex items-center justify-center text-red-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
+              className="bg-white flex items-center justify-center text-deepRed-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
               onClick={(e) => {
                 e.preventDefault();
                 setForm({ ...form, thumbnailImage: "" });
@@ -595,7 +595,7 @@ function UpdateItem() {
               <div className="relative h-auto w-20">
                 <img src={img} className="w-full h-auto" alt="" />
                 <button
-                  className="bg-white flex items-center justify-center text-red-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
+                  className="bg-white flex items-center justify-center text-deepRed-300 p-1 h-5 w-5 rounded-full absolute top-0 right-0"
                   onClick={(e) => {
                     e.preventDefault();
                     setForm({

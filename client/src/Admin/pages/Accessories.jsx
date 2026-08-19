@@ -8,11 +8,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { deleteAccessoryItem, getAccessories } from "../Redux/Async/Asynch";
 import { toast } from "react-toastify";
 
+async function uploadImage(file) {
+  const fd = new FormData();
+  fd.append("image", file);
+  const res = await fetch(`${port}/api/upload/single?folder=accessories`, {
+    method: "POST",
+    body: fd,
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Image upload failed");
+  return data.imageUrl;
+}
+
 function Accessories() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { accessories } = useSelector((select) => select.Categories);
-  const [row, setRow] = useState({ accessory: "" });
+  const [row, setRow] = useState({ accessory: "", image: "" });
+  const [imageFile, setImageFile] = useState(null);
+  const [preview, setPreview] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     dispatch(getAccessories());
@@ -20,17 +35,34 @@ function Accessories() {
 
   const listAccessory = async function (e) {
     e.preventDefault();
-    const api = await fetch(`${port}/api/list/accessory`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(row),
-    });
-    const res = await api.json();
-    toast.warn(res.warn);
-    toast.success(res.msg?.msg || res.msg || "Saved");
-    if (api.ok) {
-      dispatch(getAccessories());
-      setRow({ accessory: "" });
+    if (!row.accessory.trim()) {
+      toast.warn("Accessory title is required");
+      return;
+    }
+    setSaving(true);
+    try {
+      let image = row.image || "";
+      if (imageFile) {
+        image = await uploadImage(imageFile);
+      }
+      const api = await fetch(`${port}/api/list/accessory`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessory: row.accessory, image }),
+      });
+      const res = await api.json();
+      if (res.warn) toast.warn(res.warn);
+      toast.success(res.msg?.msg || res.msg || "Saved");
+      if (api.ok) {
+        dispatch(getAccessories());
+        setRow({ accessory: "", image: "" });
+        setImageFile(null);
+        setPreview("");
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to save accessory");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -59,7 +91,8 @@ function Accessories() {
             </div>
           </div>
           <div className="flex gap-2 bg-slate-100 py-2 px-4 items-center mt-4 mx-2 justify-between">
-            <p className="text-center w-1/5 capitalize font-semibold">#</p>
+            <p className="text-center w-1/6 capitalize font-semibold">#</p>
+            <p className="text-center w-1/6 capitalize font-semibold">image</p>
             <p className="text-center w-1/5 capitalize font-semibold">title</p>
             <p className="text-center w-1/5 capitalize font-semibold">
               Options
@@ -72,9 +105,20 @@ function Accessories() {
                 className="flex gap-2 bg-white py-2 px-4 items-center mx-2 justify-between"
                 key={a._id || i}
               >
-                <p className="text-center w-1/5 capitalize font-semibold">
+                <p className="text-center w-1/6 capitalize font-semibold">
                   {i + 1}
                 </p>
+                <div className="w-1/6 flex justify-center">
+                  {a.image ? (
+                    <img
+                      src={a.image}
+                      alt={a.accessory}
+                      className="h-10 w-10 rounded object-cover border"
+                    />
+                  ) : (
+                    <span className="text-xs text-slate-400">—</span>
+                  )}
+                </div>
                 <p className="text-center w-1/5 capitalize font-semibold">
                   {a.accessory}
                 </p>
@@ -90,7 +134,7 @@ function Accessories() {
                   </button>
                   <button
                     type="button"
-                    className="text-sm h-6 grid place-items-center w-6 rounded-full bg-red-100 text-red-500"
+                    className="text-sm h-6 grid place-items-center w-6 rounded-full bg-deepRed-100 text-deepRed-500"
                     onClick={() => dispatch(deleteAccessoryItem(a._id))}
                   >
                     <RiDeleteBin6Line />
@@ -108,15 +152,38 @@ function Accessories() {
             <input
               type="text"
               className="block p-3 placeholder:capitalize border rounded-md focus:border-blue-200 focus:border outline-none bg-slate-50 w-full"
-              onChange={(e) => setRow({ accessory: e.target.value })}
+              onChange={(e) =>
+                setRow((prev) => ({ ...prev, accessory: e.target.value }))
+              }
               value={row.accessory}
               placeholder="e.g. Wallets, Belts"
             />
+            <label className="block text-sm capitalize font-semibold my-2">
+              image
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-sm border rounded-md bg-slate-50 p-2"
+              onChange={(e) => {
+                const file = e.target.files?.[0] || null;
+                setImageFile(file);
+                setPreview(file ? URL.createObjectURL(file) : "");
+              }}
+            />
+            {preview && (
+              <img
+                src={preview}
+                alt="preview"
+                className="mt-3 h-24 w-24 rounded object-cover border"
+              />
+            )}
             <button
               type="submit"
-              className="bg-black text-white py-2 w-full rounded-md my-3"
+              disabled={saving}
+              className="bg-black text-white py-2 w-full rounded-md my-3 disabled:opacity-60"
             >
-              publish
+              {saving ? "publishing..." : "publish"}
             </button>
           </form>
         </div>

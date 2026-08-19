@@ -82,7 +82,7 @@ function AllProucts() {
               admin product
             </p>
             <p className="text-center w-20 capitalize  text-slate-500 leading-tight ">
-              Base <br /> Price: pkr {item.price} / <br />
+              Base <br /> Price: PKR {item.price} / <br />
               12 Total Sale: 0 <br /> Current Stock: 0
             </p>
             <p className="text-center w-20 capitalize font-semibold ">1</p>
@@ -100,7 +100,7 @@ function AllProucts() {
                 <MdContentCopy />
               </button>
               <button
-                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-red-100 text-red-500"
+                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-deepRed-100 text-deepRed-500"
                 onClick={() => deleteProduct(item._id)}
               >
                 <RiDeleteBin6Line />

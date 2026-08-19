@@ -6,6 +6,10 @@ const accSchema = new mongoose.Schema({
     required: true,
     trim: true,
   },
+  image: {
+    type: String,
+    default: "",
+  },
 });
 
 const accessorySchema = mongoose.model("Accessory", accSchema);

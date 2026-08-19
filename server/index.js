@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
+import "dotenv/config";
 import route from "./Routes/api.route.js";
 import Categories from "./Routes/categories.route.js";
 import cartRoutes from "./Routes/cartRoutes.js";

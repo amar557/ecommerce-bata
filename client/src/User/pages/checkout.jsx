@@ -1,22 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ShoppingCart,
   User,
   CreditCard,
-  Wallet,
-  Building,
-  Smartphone,
   ChevronRight,
   Lock,
   Truck,
   Package,
   MapPin,
   Check,
+  Loader2,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  EmbeddedCheckoutProvider,
+  EmbeddedCheckout,
+} from "@stripe/react-stripe-js";
 import { fetchCart, checkoutUserCart } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
+import axiosInstance from "../../constants/axiosInstance";
 
 // Progress Steps Component
 const CheckoutProgress = ({ currentStep }) => {
@@ -36,7 +40,7 @@ const CheckoutProgress = ({ currentStep }) => {
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center transition ${
                   currentStep >= step.id
-                    ? "bg-red-600 text-white"
+                    ? "bg-deepRed-600 text-white"
                     : "bg-gray-200 text-gray-500"
                 }`}
               >
@@ -44,7 +48,7 @@ const CheckoutProgress = ({ currentStep }) => {
               </div>
               <span
                 className={`text-sm mt-2 font-semibold ${
-                  currentStep >= step.id ? "text-red-600" : "text-gray-500"
+                  currentStep >= step.id ? "text-deepRed-600" : "text-gray-500"
                 }`}
               >
                 {step.name}
@@ -53,7 +57,7 @@ const CheckoutProgress = ({ currentStep }) => {
             {index < steps.length - 1 && (
               <div
                 className={`flex-1 h-1 mx-2 transition ${
-                  currentStep > step.id ? "bg-red-600" : "bg-gray-200"
+                  currentStep > step.id ? "bg-deepRed-600" : "bg-gray-200"
                 }`}
               />
             )}
@@ -79,7 +83,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">Shipping Address</h2>
-        <MapPin className="w-6 h-6 text-red-600" />
+        <MapPin className="w-6 h-6 text-deepRed-600" />
       </div>
 
       {/* Saved Addresses */}
@@ -92,12 +96,12 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
             {savedAddresses.map((address, index) => (
               <label
                 key={index}
-                className="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-red-600 transition"
+                className="flex items-start p-4 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-deepRed-600 transition"
               >
                 <input
                   type="radio"
                   name="savedAddress"
-                  className="mt-1 w-4 h-4 text-red-600"
+                  className="mt-1 w-4 h-4 text-deepRed-600"
                   onChange={() => {
                     setUseNewAddress(false);
                     setFormData(address);
@@ -121,7 +125,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
 
           <button
             onClick={() => setUseNewAddress(true)}
-            className="mt-4 text-red-600 font-semibold hover:text-red-700 transition"
+            className="mt-4 text-deepRed-600 font-semibold hover:text-deepRed-700 transition"
           >
             + Add New Address
           </button>
@@ -142,7 +146,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 value={formData.fullName}
                 onChange={handleInputChange}
                 placeholder="John Doe"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
                 required
               />
             </div>
@@ -157,7 +161,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="+91 98765 43210"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
                 required
               />
             </div>
@@ -173,7 +177,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               value={formData.email}
               onChange={handleInputChange}
               placeholder="john.doe@example.com"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
               required
             />
           </div>
@@ -188,7 +192,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
               onChange={handleInputChange}
               placeholder="House No, Street, Area"
               rows="3"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
               required
             />
           </div>
@@ -204,7 +208,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 value={formData.city}
                 onChange={handleInputChange}
                 placeholder="Rawalpindi"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
                 required
               />
             </div>
@@ -219,7 +223,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 value={formData.state}
                 onChange={handleInputChange}
                 placeholder="Punjab"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
                 required
               />
             </div>
@@ -234,7 +238,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 value={formData.pincode}
                 onChange={handleInputChange}
                 placeholder="110001"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
+                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-deepRed-600"
                 required
               />
             </div>
@@ -249,7 +253,7 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
                 onChange={(e) =>
                   setFormData({ ...formData, saveAddress: e.target.checked })
                 }
-                className="w-4 h-4 text-red-600 rounded"
+                className="w-4 h-4 text-deepRed-600 rounded"
               />
               <span className="text-sm text-gray-700">
                 Save this address for future orders
@@ -266,34 +270,16 @@ const ShippingAddressForm = ({ formData, setFormData, savedAddresses }) => {
 const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
   const paymentMethods = [
     {
-      id: "card",
-      name: "Credit/Debit Card",
-      icon: CreditCard,
-      description: "Visa, Mastercard, RuPay",
-    },
-    {
-      id: "upi",
-      name: "UPI",
-      icon: Smartphone,
-      description: "Google Pay, PhonePe, Paytm",
-    },
-    {
-      id: "wallet",
-      name: "Wallet",
-      icon: Wallet,
-      description: "Paytm, Amazon Pay",
-    },
-    {
-      id: "netbanking",
-      name: "Net Banking",
-      icon: Building,
-      description: "All major banks",
-    },
-    {
       id: "cod",
       name: "Cash on Delivery",
       icon: Package,
-      description: "Pay when you receive",
+      description: "Pay when you receive your order",
+    },
+    {
+      id: "stripe",
+      name: "Pay with Stripe",
+      icon: CreditCard,
+      description: "Secure card payment via Stripe",
     },
   ];
 
@@ -310,8 +296,8 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
             key={method.id}
             className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
               paymentMethod === method.id
-                ? "border-red-600 bg-red-50"
-                : "border-gray-200 hover:border-red-600"
+                ? "border-deepRed-600 bg-deepRed-50"
+                : "border-gray-200 hover:border-deepRed-600"
             }`}
           >
             <input
@@ -320,7 +306,7 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
               value={method.id}
               checked={paymentMethod === method.id}
               onChange={(e) => setPaymentMethod(e.target.value)}
-              className="w-4 h-4 text-red-600"
+              className="w-4 h-4 text-deepRed-600"
             />
             <method.icon className="w-6 h-6 text-gray-600 mx-4" />
             <div className="flex-1">
@@ -328,79 +314,58 @@ const PaymentMethod = ({ paymentMethod, setPaymentMethod }) => {
               <p className="text-sm text-gray-600">{method.description}</p>
             </div>
             {paymentMethod === method.id && (
-              <Check className="w-5 h-5 text-red-600" />
+              <Check className="w-5 h-5 text-deepRed-600" />
             )}
           </label>
         ))}
       </div>
 
-      {/* Card Details Form (shown only when card is selected) */}
-      {paymentMethod === "card" && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Card Number
-            </label>
-            <input
-              type="text"
-              placeholder="1234 5678 9012 3456"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Expiry Date
-              </label>
-              <input
-                type="text"
-                placeholder="MM/YY"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                CVV
-              </label>
-              <input
-                type="text"
-                placeholder="123"
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Cardholder Name
-            </label>
-            <input
-              type="text"
-              placeholder="John Doe"
-              className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* UPI Form */}
-      {paymentMethod === "upi" && (
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
-            UPI ID
-          </label>
-          <input
-            type="text"
-            placeholder="yourname@upi"
-            className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-red-600"
-          />
+      {paymentMethod === "stripe" && (
+        <div className="mt-4 rounded-lg border border-deepRed-200 bg-deepRed-50 p-4">
+          <p className="text-sm font-semibold text-deepRed-800">
+            Pay securely with Stripe
+          </p>
+          <p className="mt-1 text-sm text-deepRed-700">
+            Fill in your shipping details, then click{" "}
+            <strong>Pay with Stripe</strong> below. Stripe&apos;s card payment
+            form will appear on this page so you can complete payment.
+          </p>
         </div>
       )}
     </div>
   );
 };
+
+function StripeEmbeddedPay({ clientSecret, publishableKey, onClose }) {
+  const stripePromise = useMemo(
+    () => loadStripe(publishableKey),
+    [publishableKey]
+  );
+  const options = useMemo(() => ({ clientSecret }), [clientSecret]);
+
+  return (
+    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 border-2 border-deepRed-600">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-bold text-gray-900">Complete payment</h2>
+          <p className="text-sm text-gray-600">
+            Enter your card details below via Stripe
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-sm text-gray-600 hover:text-deepRed-600 font-medium"
+        >
+          Cancel
+        </button>
+      </div>
+      <EmbeddedCheckoutProvider stripe={stripePromise} options={options}>
+        <EmbeddedCheckout />
+      </EmbeddedCheckoutProvider>
+    </div>
+  );
+}
 
 // Order Summary Component
 const OrderSummary = ({ cartItems, discount, shippingCost }) => {
@@ -448,7 +413,7 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
                       Size: {sizeLabel} | Qty: {item.quantity}
                     </p>
                     <p className="text-sm font-bold text-gray-900">
-                      ₹
+                      PKR 
                       {(product?.price > product?.discountPrice
                         ? product.discountPrice
                         : product.price) * item.quantity}
@@ -464,13 +429,13 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
       <div className="space-y-3 mb-6 pb-6 border-t pt-6">
         <div className="flex justify-between text-gray-700">
           <span>Subtotal ({(cartItems || []).length} items)</span>
-          <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
+          <span className="font-semibold">PKR {subtotal.toFixed(2)}</span>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount ({discount}%)</span>
-            <span className="font-semibold">-₹{discountAmount.toFixed(2)}</span>
+            <span className="font-semibold">-PKR {discountAmount.toFixed(2)}</span>
           </div>
         )}
 
@@ -480,21 +445,21 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
             {shippingCost === 0 ? (
               <span className="text-green-600">FREE</span>
             ) : (
-              `₹${shippingCost}`
+              `PKR ${shippingCost}`
             )}
           </span>
         </div>
 
         <div className="flex justify-between text-gray-700">
           <span>Tax (GST 18%)</span>
-          <span className="font-semibold">₹{(total * 0.18).toFixed(2)}</span>
+          <span className="font-semibold">PKR {(total * 0.18).toFixed(2)}</span>
         </div>
       </div>
 
       {/* Total */}
       <div className="flex justify-between items-center text-xl font-bold text-gray-900 mb-6 pb-6 border-t pt-6">
         <span>Total Amount</span>
-        <span>₹{(total + total * 0.18).toFixed(2)}</span>
+        <span>PKR {(total + total * 0.18).toFixed(2)}</span>
       </div>
 
       {/* Security Badge */}
@@ -526,15 +491,26 @@ const OrderSummary = ({ cartItems, discount, shippingCost }) => {
 export default function CheckoutPage() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(2);
-  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [paymentMethod, setPaymentMethod] = useState("cod");
   const [placing, setPlacing] = useState(false);
+  const [stripePay, setStripePay] = useState(null);
   const { items, error, loading } = useSelector((state) => state.cart);
-  const { user } = useSelector((state) => state.auth);
+  const { user, token } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const isLoggedIn = Boolean(
+    token || localStorage.getItem("token") || user?.email || user?.name
+  );
 
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("canceled") === "1") {
+      toast.info("Stripe payment was canceled. You can try again.");
+    }
+  }, []);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -551,8 +527,10 @@ export default function CheckoutPage() {
   const discount = 0;
   const shippingCost = 0;
 
+  const closeStripePay = useCallback(() => setStripePay(null), []);
+
   const handlePlaceOrder = async () => {
-    if (!user?.name) {
+    if (!isLoggedIn) {
       toast.error("Please log in to place an order.");
       return;
     }
@@ -572,9 +550,54 @@ export default function CheckoutPage() {
 
     setPlacing(true);
     try {
+      if (paymentMethod === "stripe") {
+        let publishableKey = null;
+        try {
+          const { data: cfg } = await axiosInstance.get(
+            "/api/cart/stripe/config"
+          );
+          publishableKey = cfg?.publishableKey || null;
+        } catch {
+          publishableKey = null;
+        }
+
+        const useEmbedded =
+          Boolean(publishableKey) &&
+          !String(publishableKey).includes("REPLACE");
+
+        const result = await dispatch(
+          checkoutUserCart({
+            shippingAddress: formData,
+            paymentMethod: "stripe",
+            embedded: useEmbedded,
+          })
+        ).unwrap();
+
+        if (useEmbedded && result?.clientSecret) {
+          setStripePay({
+            clientSecret: result.clientSecret,
+            publishableKey: result.publishableKey || publishableKey,
+          });
+          setCurrentStep(3);
+          toast.success("Enter your card details below to pay with Stripe.");
+          return;
+        }
+
+        if (result?.url) {
+          window.location.assign(result.url);
+          return;
+        }
+
+        throw new Error(
+          result?.msg ||
+            "Could not open Stripe payment. Check STRIPE_PUBLISHABLE_KEY in server/.env and restart the server."
+        );
+      }
+
       const result = await dispatch(
-        checkoutUserCart({ shippingAddress: formData, paymentMethod })
+        checkoutUserCart({ shippingAddress: formData, paymentMethod: "cod" })
       ).unwrap();
+
       const orderId = result?.orderId;
       if (orderId) {
         navigate(`/order-success?orderId=${orderId}`);
@@ -582,7 +605,12 @@ export default function CheckoutPage() {
         navigate("/order-success");
       }
     } catch (err) {
-      const msg = err?.warn || err?.msg || (typeof err === "string" ? err : "Failed to place order.");
+      const msg =
+        err?.error ||
+        err?.warn ||
+        err?.msg ||
+        err?.message ||
+        (typeof err === "string" ? err : "Failed to place order.");
       toast.error(msg);
     } finally {
       setPlacing(false);
@@ -595,11 +623,11 @@ export default function CheckoutPage() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <a href="/" className="hover:text-red-600">
+            <a href="/" className="hover:text-deepRed-600">
               Home
             </a>{" "}
             /
-            <a href="/cart" className="hover:text-red-600">
+            <a href="/cart" className="hover:text-deepRed-600">
               {" "}
               Cart
             </a>{" "}
@@ -621,50 +649,70 @@ export default function CheckoutPage() {
 
             <PaymentMethod
               paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
+              setPaymentMethod={(method) => {
+                setPaymentMethod(method);
+                setStripePay(null);
+              }}
             />
 
-            {/* Terms and Place Order */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <label className="flex items-start space-x-3 mb-6 cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="w-5 h-5 text-red-600 rounded mt-1"
-                  required
-                />
-                <span className="text-sm text-gray-700">
-                  I agree to the{" "}
-                  <a
-                    href="#"
-                    className="text-red-600 font-semibold hover:text-red-700"
-                  >
-                    Terms & Conditions
-                  </a>{" "}
-                  and{" "}
-                  <a
-                    href="#"
-                    className="text-red-600 font-semibold hover:text-red-700"
-                  >
-                    Privacy Policy
-                  </a>
-                </span>
-              </label>
+            {stripePay?.clientSecret && stripePay?.publishableKey ? (
+              <StripeEmbeddedPay
+                clientSecret={stripePay.clientSecret}
+                publishableKey={stripePay.publishableKey}
+                onClose={closeStripePay}
+              />
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <label className="flex items-start space-x-3 mb-6 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="w-5 h-5 text-deepRed-600 rounded mt-1"
+                    required
+                  />
+                  <span className="text-sm text-gray-700">
+                    I agree to the{" "}
+                    <a
+                      href="#"
+                      className="text-deepRed-600 font-semibold hover:text-deepRed-700"
+                    >
+                      Terms & Conditions
+                    </a>{" "}
+                    and{" "}
+                    <a
+                      href="#"
+                      className="text-deepRed-600 font-semibold hover:text-deepRed-700"
+                    >
+                      Privacy Policy
+                    </a>
+                  </span>
+                </label>
 
-              <button
-                onClick={handlePlaceOrder}
-                disabled={placing}
-                className="w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
-              >
-                {placing ? (
-                  <span>Placing order...</span>
-                ) : (
-                  <>
-                    <span>Place Order</span>
-                    <ChevronRight className="w-5 h-5" />
-                  </>
-                )}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handlePlaceOrder}
+                  disabled={placing}
+                  className="w-full bg-deepRed-600 text-white py-4 rounded-lg font-bold hover:bg-deepRed-700 transition flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {placing ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {paymentMethod === "stripe"
+                        ? "Opening Stripe payment..."
+                        : "Placing order..."}
+                    </span>
+                  ) : (
+                    <>
+                      <span>
+                        {paymentMethod === "stripe"
+                          ? "Pay with Stripe"
+                          : "Place Order"}
+                      </span>
+                      <ChevronRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right Column - Order Summary */}

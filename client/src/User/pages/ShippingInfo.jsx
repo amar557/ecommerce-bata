@@ -8,7 +8,7 @@ export default function ShippingInfo() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <Link to="/" className="hover:text-red-600">Home</Link>
+            <Link to="/" className="hover:text-deepRed-600">Home</Link>
             {" / "}
             <span className="text-gray-900 font-semibold">Shipping Info</span>
           </p>
@@ -24,7 +24,7 @@ export default function ShippingInfo() {
         <div className="space-y-8">
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <Truck className="w-8 h-8 text-red-600" />
+              <Truck className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Delivery Options</h2>
             </div>
             <p className="text-gray-600 mb-4">
@@ -39,7 +39,7 @@ export default function ShippingInfo() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <Package className="w-8 h-8 text-red-600" />
+              <Package className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Order Processing</h2>
             </div>
             <p className="text-gray-600 mb-4">
@@ -52,7 +52,7 @@ export default function ShippingInfo() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <Clock className="w-8 h-8 text-red-600" />
+              <Clock className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Delivery Timeframes</h2>
             </div>
             <p className="text-gray-600">
@@ -62,11 +62,11 @@ export default function ShippingInfo() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <MapPin className="w-8 h-8 text-red-600" />
+              <MapPin className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Shipping Areas</h2>
             </div>
             <p className="text-gray-600">
-              We currently ship to addresses within Pakistan. If you have questions about delivery to your area or need special arrangements, please <Link to="/contact" className="text-red-600 hover:underline">contact us</Link>.
+              We currently ship to addresses within Pakistan. If you have questions about delivery to your area or need special arrangements, please <Link to="/contact" className="text-deepRed-600 hover:underline">contact us</Link>.
             </p>
           </section>
         </div>

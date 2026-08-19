@@ -4,6 +4,9 @@ import {
   getCartItems,
   removeFromCart,
   checkoutCart,
+  createStripeCheckoutSession,
+  confirmStripeCheckout,
+  getStripeConfig,
   getOrderById,
   getUserOrders,
   getAdminOrders,
@@ -18,6 +21,9 @@ router.post("/add", addToCart);
 router.get("/items", getCartItems);
 router.delete("/:id", removeFromCart);
 router.post("/checkout", checkoutCart);
+router.get("/stripe/config", getStripeConfig);
+router.post("/stripe/create-session", createStripeCheckoutSession);
+router.post("/stripe/confirm", confirmStripeCheckout);
 router.get("/orders", getUserOrders);
 router.get("/order/:orderId", getOrderById);
 router.get("/admin/orders", verifyToken, verifyAdmin, getAdminOrders);

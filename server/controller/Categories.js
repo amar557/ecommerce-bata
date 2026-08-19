@@ -2,6 +2,7 @@ import brandSchema from "../Schema/brandSchema.js";
 import categorySchema from "../Schema/categorySchema.js";
 import accessorySchema from "../Schema/accessorySchema.js";
 import ListItem from "../Schema/ItemSchema.js";
+import Order from "../Schema/OrderSchema.js";
 export const ListCategories = async function (req, res, next) {
   const createdCat = await categorySchema(req.body);
   createdCat.save();
@@ -122,8 +123,82 @@ export const getAllItems = async (req, res, next) => {
     res.status(200).json(items);
   } catch (error) {
     console.error("Error fetching items:", error.message);
+    res.status(500).json({ msg: "Failed to fetch items", error: error.message });
+  }
+};
+
+/** Top N products by quantity sold across orders; falls back to newest products. */
+export const getBestSellers = async (req, res) => {
+  try {
+    const limit = Math.min(Number(req.query.limit) || 5, 20);
+
+    const sales = await Order.aggregate([
+      { $unwind: "$items" },
+      {
+        $match: {
+          "items.productId": { $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: "$items.productId",
+          sold: { $sum: { $ifNull: ["$items.quantity", 1] } },
+        },
+      },
+      { $sort: { sold: -1 } },
+      { $limit: limit },
+    ]);
+
+    let products = [];
+    if (sales.length > 0) {
+      const ids = sales.map((s) => s._id);
+      const soldMap = new Map(sales.map((s) => [String(s._id), s.sold]));
+      const found = await ListItem.find({
+        _id: { $in: ids },
+        isActive: { $ne: false },
+      })
+        .populate("categoryId", "category")
+        .populate("brandId", "brand")
+        .populate("accessoryId", "accessory");
+
+      products = ids
+        .map((id) => {
+          const product = found.find((p) => String(p._id) === String(id));
+          if (!product) return null;
+          const doc = product.toObject();
+          doc.soldCount = soldMap.get(String(id)) || 0;
+          return doc;
+        })
+        .filter(Boolean);
+    }
+
+    if (products.length < limit) {
+      const excludeIds = products.map((p) => p._id);
+      const fillers = await ListItem.find({
+        _id: { $nin: excludeIds },
+        isActive: { $ne: false },
+      })
+        .sort({ createdAt: -1 })
+        .limit(limit - products.length)
+        .populate("categoryId", "category")
+        .populate("brandId", "brand")
+        .populate("accessoryId", "accessory");
+
+      products = [
+        ...products,
+        ...fillers.map((p) => {
+          const doc = p.toObject();
+          doc.soldCount = doc.soldCount || 0;
+          return doc;
+        }),
+      ];
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Error fetching best sellers:", error.message);
     res.status(500).json({
-      msg: "Failed to fetch items",
+      msg: "Failed to fetch best sellers",
       error: error.message,
     });
   }

@@ -1,5 +1,5 @@
 import Dashboard from "./Admin/pages/Dashboard";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import LayOut from "./Admin/pages/LayOut";
 import Profile from "./Admin/pages/Profile";
 import Orders from "./Admin/pages/Orders";
@@ -10,12 +10,12 @@ import Brands from "./Admin/pages/Brands";
 import Customers from "./Admin/pages/Customers";
 import AddCustomer from "./Admin/pages/AddCustomer";
 import Login from "./Admin/pages/Login";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import UpdateCategory from "./Admin/pages/UpdateCategory";
 import UpdateBrand from "./Admin/pages/UpdateBrand";
 import Accessories from "./Admin/pages/Accessories";
 import UpdateAccessory from "./Admin/pages/UpdateAccessory";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import UserLayout from "./User/pages/UserLayout";
 import Home from "./User/pages/Home";
@@ -32,19 +32,13 @@ import Returns from "./User/pages/Returns";
 import { useDispatch } from "react-redux";
 import { checkTokenExpiration } from "./Admin/Redux/Slices/authSlice";
 import InviteRedirect from "./User/pages/InviteRedirect";
+import ProtectedAdminRoute from "./Admin/components/ProtectedAdminRoute";
 
 function App() {
-  const [isAdmin, setIsAdmin] = useState(localStorage.getItem("admin"));
-  useEffect(() => {
-    setIsAdmin(localStorage.getItem("admin"));
-  }, []);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("checking");
     dispatch(checkTokenExpiration());
-    console.log("checking 2");
   }, [dispatch]);
 
   return (
@@ -65,21 +59,23 @@ function App() {
           <Route path="/shipping" element={<ShippingInfo />} />
           <Route path="/returns" element={<Returns />} />
         </Route>
-        <Route path="admin" element={<LayOut />}>
-          <Route index element={<Dashboard />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="all-products" element={<AllProucts />} />
-          <Route path="add-product" element={<AddProduct />} />
-          <Route path="update-product/:id" element={<UpdateItem />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="update/category/:id" element={<UpdateCategory />} />
-          <Route path="brands" element={<Brands />} />
-          <Route path="update/brand/:id" element={<UpdateBrand />} />
-          <Route path="accessories" element={<Accessories />} />
-          <Route path="update/accessory/:id" element={<UpdateAccessory />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="addcustomer" element={<AddCustomer />} />
-          <Route path="profile" element={<Profile />} />
+        <Route path="admin" element={<ProtectedAdminRoute />}>
+          <Route element={<LayOut />}>
+            <Route index element={<Dashboard />} />
+            <Route path="orders" element={<Orders />} />
+            <Route path="all-products" element={<AllProucts />} />
+            <Route path="add-product" element={<AddProduct />} />
+            <Route path="update-product/:id" element={<UpdateItem />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="update/category/:id" element={<UpdateCategory />} />
+            <Route path="brands" element={<Brands />} />
+            <Route path="update/brand/:id" element={<UpdateBrand />} />
+            <Route path="accessories" element={<Accessories />} />
+            <Route path="update/accessory/:id" element={<UpdateAccessory />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="addcustomer" element={<AddCustomer />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
         </Route>
 
         <Route path="login" element={<Login />} />

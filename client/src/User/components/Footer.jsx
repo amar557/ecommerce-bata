@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "../../assets/logo2.png";
 
 // Footer Component
 const Footer = () => {
@@ -7,7 +8,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-2xl font-bold text-red-600 mb-4">BATA</h3>
+            <img src={logo} alt="Bata" className="h-[4rem] w-auto mb-4" />
             <p className="text-gray-400">
               Quality footwear since 1894. Step into comfort and style.
             </p>
@@ -69,7 +70,7 @@ const Footer = () => {
                 placeholder="Your email"
                 className="flex-1 px-4 py-2 rounded-l-full text-gray-900 outline-none"
               />
-              <button className="bg-red-600 px-6 py-2 rounded-r-full hover:bg-red-700 transition">
+              <button className="bg-deepRed-600 px-6 py-2 rounded-r-full hover:bg-deepRed-700 transition">
                 Subscribe
               </button>
             </div>

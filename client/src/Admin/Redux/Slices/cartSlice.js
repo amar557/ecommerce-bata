@@ -46,11 +46,33 @@ export const removeItemFromCart = createAsyncThunk(
 // ✅ Place order (creates order, clears cart). Pass { shippingAddress, paymentMethod }.
 export const checkoutUserCart = createAsyncThunk(
   "cart/checkout",
-  async ({ shippingAddress, paymentMethod = "cod" }, { rejectWithValue, dispatch }) => {
+  async ({ shippingAddress, paymentMethod = "cod", embedded = false }, { rejectWithValue, dispatch }) => {
     try {
+      if (paymentMethod === "stripe") {
+        const { data } = await axiosInstance.post("/api/cart/stripe/create-session", {
+          shippingAddress: shippingAddress || {},
+          embedded: Boolean(embedded),
+        });
+        return { ...data, paymentMethod: "stripe", embedded: Boolean(embedded) };
+      }
       const { data } = await axiosInstance.post("/api/cart/checkout", {
         shippingAddress: shippingAddress || {},
-        paymentMethod,
+        paymentMethod: "cod",
+      });
+      dispatch(fetchCart());
+      return { ...data, paymentMethod: "cod" };
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
+  }
+);
+
+export const confirmStripePayment = createAsyncThunk(
+  "cart/confirmStripe",
+  async (sessionId, { rejectWithValue, dispatch }) => {
+    try {
+      const { data } = await axiosInstance.post("/api/cart/stripe/confirm", {
+        sessionId,
       });
       dispatch(fetchCart());
       return data;
@@ -89,8 +111,11 @@ const cartSlice = createSlice({
       .addCase(removeItemFromCart.rejected, (state, action) => {
         state.error = action.payload;
       })
-      .addCase(checkoutUserCart.fulfilled, (state) => {
-        state.items = [];
+      .addCase(checkoutUserCart.fulfilled, (state, action) => {
+        // Don't clear cart until Stripe payment is confirmed
+        if (action.payload?.paymentMethod !== "stripe") {
+          state.items = [];
+        }
       })
       .addCase(checkoutUserCart.rejected, (state, action) => {
         state.error = action.payload;

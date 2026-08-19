@@ -12,7 +12,7 @@ function AuthModal({ isOpen, onClose, mode, onSwitchMode }) {
   });
 
   const dispatch = useDispatch();
-  const { loading, error, user } = useSelector((state) => state.auth);
+  const { loading, error } = useSelector((state) => state.auth);
   const [formError, setFormError] = useState("");
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -173,9 +173,9 @@ function AuthModal({ isOpen, onClose, mode, onSwitchMode }) {
               </div>
             )}
 
-            {error && (
-              <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-                {error?.msg}
+            {(formError || error) && (
+              <div className="text-deepRed-600 text-sm bg-deepRed-50 p-3 rounded-md">
+                {formError || error?.msg || (typeof error === "string" ? error : "Something went wrong")}
               </div>
             )}
 

@@ -16,6 +16,23 @@ export const fetchProducts = createAsyncThunk(
   }
 )
 
+// ✅ Fetch top best sellers
+export const fetchBestSellers = createAsyncThunk(
+  'products/fetchBestSellers',
+  async (limit = 5, { rejectWithValue }) => {
+    try {
+      const res = await axiosInstance.get(`/api/item/best-sellers`, {
+        params: { limit },
+      })
+      return Array.isArray(res.data) ? res.data : []
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || 'Something went wrong while fetching best sellers'
+      )
+    }
+  }
+)
+
 // ✅ Fetch single product by ID
 export const fetchProductById = createAsyncThunk(
   'products/fetchProductById',
@@ -35,6 +52,8 @@ export const fetchProductById = createAsyncThunk(
 // ✅ Initial state
 const initialState = {
   items: [],           // all products
+  bestSellers: [],
+  bestSellersLoading: false,
   singleProduct: null, // one product
   loading: true,
   error: null,
@@ -67,6 +86,18 @@ const productSlice = createSlice({
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false
+        state.error = action.payload
+      })
+
+      .addCase(fetchBestSellers.pending, (state) => {
+        state.bestSellersLoading = true
+      })
+      .addCase(fetchBestSellers.fulfilled, (state, action) => {
+        state.bestSellersLoading = false
+        state.bestSellers = action.payload
+      })
+      .addCase(fetchBestSellers.rejected, (state, action) => {
+        state.bestSellersLoading = false
         state.error = action.payload
       })
 

@@ -48,16 +48,18 @@ function Orders() {
   };
 
   const getPaymentStatusColor = (status) => {
-    return status === "paid" ? "bg-green-200 text-green-600" : "bg-red-200 text-red-600";
+    return status === "paid" ? "bg-green-200 text-green-600" : "bg-deepRed-200 text-deepRed-600";
   };
 
   const formatPaymentMethod = (method) => {
     const methods = {
+      stripe: "Stripe",
+      cod: "Cash on Delivery",
+      // legacy values
       card: "Card",
       upi: "UPI",
       wallet: "Wallet",
       netbanking: "Net Banking",
-      cod: "Cash on Delivery",
     };
     return methods[method] || method;
   };
@@ -77,7 +79,7 @@ function Orders() {
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; }
     .header { border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px; }
-    .company { font-size: 24px; font-weight: bold; color: #dc2626; }
+    .company { font-size: 24px; font-weight: bold; color: #7A0A0A; }
     .invoice-title { font-size: 18px; margin-top: 10px; }
     .details { display: flex; justify-content: space-between; margin: 20px 0; }
     .section { flex: 1; }
@@ -88,7 +90,7 @@ function Orders() {
     .total { text-align: right; font-size: 18px; font-weight: bold; margin-top: 20px; }
     .status { display: inline-block; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
     .paid { background-color: #d1fae5; color: #065f46; }
-    .unpaid { background-color: #fee2e2; color: #991b1b; }
+    .unpaid { background-color: #F0DADA; color: #7A0A0A; }
   </style>
 </head>
 <body>
@@ -132,14 +134,14 @@ function Orders() {
           <td>${item.title}</td>
           <td>${item.sizeLabel || "N/A"}</td>
           <td>${item.quantity}</td>
-          <td>₹${(item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price).toFixed(2)}</td>
-          <td>₹${((item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price) * item.quantity).toFixed(2)}</td>
+          <td>PKR ${(item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price).toFixed(2)}</td>
+          <td>PKR ${((item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price) * item.quantity).toFixed(2)}</td>
         </tr>
       `).join("") || ""}
     </tbody>
   </table>
   <div class="total">
-    <p>Total Amount: ₹${order.totalAmount?.toFixed(2) || "0.00"}</p>
+    <p>Total Amount: PKR ${order.totalAmount?.toFixed(2) || "0.00"}</p>
   </div>
   <div style="margin-top: 40px; text-align: center; color: #666; font-size: 12px;">
     <p>Thank you for your order!</p>
@@ -184,7 +186,7 @@ function Orders() {
   if (error) {
     return (
       <div className="bg-slate-200 px-6 py-8">
-        <div className="text-center text-red-600">Error: {error?.msg || "Failed to load orders"}</div>
+        <div className="text-center text-deepRed-600">Error: {error?.msg || "Failed to load orders"}</div>
       </div>
     );
   }
@@ -236,7 +238,7 @@ function Orders() {
                   </div>
                   <p className="text-center w-24 text-sm">{formatDate(order.createdAt)}</p>
                   <p className="text-center w-24 font-semibold">{order.items?.length || 0}</p>
-                  <p className="text-center w-28 font-semibold">₹{order.totalAmount?.toFixed(2) || "0.00"}</p>
+                  <p className="text-center w-28 font-semibold">PKR {order.totalAmount?.toFixed(2) || "0.00"}</p>
                   <p className="text-center w-32 text-sm capitalize">{formatPaymentMethod(order.paymentMethod || "cod")}</p>
                   <div className="text-center w-28">
                     <span className={`text-xs py-1 px-2 rounded-2xl font-semibold capitalize ${getPaymentStatusColor(order.paymentStatus || "unpaid")}`}>
@@ -354,7 +356,7 @@ function Orders() {
                           {item.sizeLabel && ` • Size: ${item.sizeLabel}`}
                         </p>
                         <p className="text-sm font-semibold mt-1">
-                          ₹
+                          PKR 
                           {(item.discountPrice != null && item.discountPrice < item.price
                             ? item.discountPrice
                             : item.price) * item.quantity}
@@ -367,7 +369,7 @@ function Orders() {
               <div className="border-t pt-4">
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total Amount:</span>
-                  <span>₹{selectedOrder.totalAmount?.toFixed(2) || "0.00"}</span>
+                  <span>PKR {selectedOrder.totalAmount?.toFixed(2) || "0.00"}</span>
                 </div>
                 <div className="mt-2">
                   <span className="text-sm text-gray-600">Status: </span>

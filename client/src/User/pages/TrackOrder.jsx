@@ -26,16 +26,17 @@ const getStatusColor = (status) => {
 };
 
 const getPaymentStatusColor = (status) => {
-  return status === "paid" ? "bg-green-200 text-green-600" : "bg-red-200 text-red-600";
+  return status === "paid" ? "bg-green-200 text-green-600" : "bg-deepRed-200 text-deepRed-600";
 };
 
 const formatPaymentMethod = (method) => {
   const methods = {
+    stripe: "Stripe",
+    cod: "Cash on Delivery",
     card: "Card",
     upi: "UPI",
     wallet: "Wallet",
     netbanking: "Net Banking",
-    cod: "Cash on Delivery",
   };
   return methods[method] || method;
 };
@@ -63,7 +64,7 @@ const OrderListItem = ({ order, onClick }) => {
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xl font-bold text-gray-900">₹{order.totalAmount?.toFixed(2) || "0.00"}</p>
+          <p className="text-xl font-bold text-gray-900">PKR {order.totalAmount?.toFixed(2) || "0.00"}</p>
           <p className="text-xs text-gray-500">{order.items?.length || 0} items</p>
         </div>
       </div>
@@ -104,13 +105,13 @@ const OrderDetailView = ({ order, onBack }) => {
         <div className="mb-6">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-red-600 mb-2"
+            className="flex items-center gap-2 text-gray-600 hover:text-deepRed-600 mb-2"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to orders</span>
           </button>
           <p className="text-sm text-gray-600">
-            <Link to="/" className="hover:text-red-600">Home</Link>
+            <Link to="/" className="hover:text-deepRed-600">Home</Link>
             <ChevronRight className="inline w-4 h-4 mx-1" />
             <span className="text-gray-900 font-semibold">Track Order</span>
           </p>
@@ -129,7 +130,7 @@ const OrderDetailView = ({ order, onBack }) => {
           <div className="flex justify-between relative">
             <div className="absolute top-5 left-0 right-0 h-1 bg-gray-200 rounded-full" style={{ width: "100%" }} />
             <div
-              className="absolute top-5 left-0 h-1 bg-red-600 rounded-full transition-all duration-300"
+              className="absolute top-5 left-0 h-1 bg-deepRed-600 rounded-full transition-all duration-300"
               style={{ width: `${(safeIndex / (STATUS_STEPS.length - 1)) * 100}%` }}
             />
             {STATUS_STEPS.map((step, index) => {
@@ -140,12 +141,12 @@ const OrderDetailView = ({ order, onBack }) => {
                 <div key={step.key} className="relative flex flex-col items-center flex-1">
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 ${
-                      isDone ? "bg-red-600 border-red-600 text-white" : "bg-white border-gray-300 text-gray-400"
-                    } ${isCurrent ? "ring-4 ring-red-100" : ""}`}
+                      isDone ? "bg-deepRed-600 border-deepRed-600 text-white" : "bg-white border-gray-300 text-gray-400"
+                    } ${isCurrent ? "ring-4 ring-deepRed-100" : ""}`}
                   >
                     <Icon className="w-5 h-5" />
                   </div>
-                  <span className={`mt-2 text-xs font-semibold text-center ${isDone ? "text-red-600" : "text-gray-400"}`}>
+                  <span className={`mt-2 text-xs font-semibold text-center ${isDone ? "text-deepRed-600" : "text-gray-400"}`}>
                     {step.label}
                   </span>
                 </div>
@@ -158,7 +159,7 @@ const OrderDetailView = ({ order, onBack }) => {
         {order.shippingAddress && (order.shippingAddress.address || order.shippingAddress.fullName) && (
           <div className="bg-white rounded-xl shadow-md p-6 mb-8">
             <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-red-600" />
+              <MapPin className="w-5 h-5 text-deepRed-600" />
               Shipping Address
             </h2>
             <p className="text-gray-700">
@@ -208,14 +209,14 @@ const OrderDetailView = ({ order, onBack }) => {
                   </p>
                 </div>
                 <p className="font-semibold text-gray-900">
-                  ₹{(item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price) * item.quantity}
+                  PKR {(item.discountPrice != null && item.discountPrice < item.price ? item.discountPrice : item.price) * item.quantity}
                 </p>
               </li>
             ))}
           </ul>
           <div className="mt-4 pt-4 border-t flex justify-between text-lg font-bold text-gray-900">
             <span>Total</span>
-            <span>₹{order.totalAmount?.toFixed(2) ?? "—"}</span>
+            <span>PKR {order.totalAmount?.toFixed(2) ?? "—"}</span>
           </div>
         </div>
       </div>
@@ -300,8 +301,8 @@ export default function TrackOrder() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-red-600 font-semibold mb-4">{error}</p>
-          <Link to="/" className="text-red-600 hover:underline">Back to home</Link>
+          <p className="text-deepRed-600 font-semibold mb-4">{error}</p>
+          <Link to="/" className="text-deepRed-600 hover:underline">Back to home</Link>
         </div>
       </div>
     );
@@ -318,7 +319,7 @@ export default function TrackOrder() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <p className="text-sm text-gray-600 mb-2">
-            <Link to="/" className="hover:text-red-600">Home</Link>
+            <Link to="/" className="hover:text-deepRed-600">Home</Link>
             <ChevronRight className="inline w-4 h-4 mx-1" />
             <span className="text-gray-900 font-semibold">My Orders</span>
           </p>
@@ -343,7 +344,7 @@ export default function TrackOrder() {
             <p className="text-gray-600 mb-6">You haven't placed any orders yet.</p>
             <Link
               to="/products"
-              className="inline-block bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+              className="inline-block bg-deepRed-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-deepRed-700 transition"
             >
               Start Shopping
             </Link>

@@ -3,11 +3,14 @@ import userSchema from "../Schema/user.schema.js";
 
 export const verifyToken = async function (req, res, next) {
   try {
-    const token = req.header("Authorization");
+    const authHeader = req.header("Authorization");
 
-    if (!token) {
+    if (!authHeader) {
       return res.status(401).json({ msg: "Authorization token missing" });
     }
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : authHeader;
     // Verify token
     const decoded = jwt.verify(token, "secretkeyisgiven");
 

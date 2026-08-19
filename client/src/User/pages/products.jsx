@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchProducts } from "../../Admin/Redux/Slices/productSlice";
+import {
+  getAccessories,
+  getBrands,
+  getCategories,
+} from "../../Admin/Redux/Async/Asynch";
 import { useNavigationController } from "../../constants/navigation";
 import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
@@ -61,7 +66,7 @@ const FilterSidebar = ({
         <h3 className="text-lg font-bold text-gray-900">Filters</h3>
         <button
           onClick={clearAllFilters}
-          className="text-sm text-red-600 hover:text-red-700 font-semibold"
+          className="text-sm text-deepRed-600 hover:text-deepRed-700 font-semibold"
         >
           Clear All
         </button>
@@ -81,7 +86,7 @@ const FilterSidebar = ({
                 type="checkbox"
                 checked={filters.gender.includes(gender)}
                 onChange={() => toggleFilter("gender", gender)}
-                className="w-4 h-4 text-red-600 rounded"
+                className="w-4 h-4 text-deepRed-600 rounded"
               />
               <span className="text-gray-700 capitalize">{gender}</span>
             </label>
@@ -104,7 +109,7 @@ const FilterSidebar = ({
                 type="checkbox"
                 checked={filters.brands.includes(brand._id)}
                 onChange={() => toggleFilter("brands", brand._id)}
-                className="w-4 h-4 text-red-600 rounded"
+                className="w-4 h-4 text-deepRed-600 rounded"
               />
               <span className="text-gray-700">{brand.brand}</span>
             </label>
@@ -127,7 +132,7 @@ const FilterSidebar = ({
                 type="checkbox"
                 checked={filters.categories.includes(category._id)}
                 onChange={() => toggleFilter("categories", category._id)}
-                className="w-4 h-4 text-red-600 rounded"
+                className="w-4 h-4 text-deepRed-600 rounded"
               />
               <span className="text-gray-700">{category.category}</span>
             </label>
@@ -136,10 +141,10 @@ const FilterSidebar = ({
       </div>
       )}
 
-      {/* Accessory Filter */}
+      {/* Accessories Filter */}
       {accessories?.length > 0 && (
       <div className="border-b pb-4">
-        <h4 className="font-semibold text-gray-900 mb-3">Accessory</h4>
+        <h4 className="font-semibold text-gray-900 mb-3">Accessories</h4>
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {accessories.map((acc) => (
             <label
@@ -150,9 +155,9 @@ const FilterSidebar = ({
                 type="checkbox"
                 checked={filters.accessories.includes(acc._id)}
                 onChange={() => toggleFilter("accessories", acc._id)}
-                className="w-4 h-4 text-red-600 rounded"
+                className="w-4 h-4 text-deepRed-600 rounded"
               />
-              <span className="text-gray-700">{acc.accessory}</span>
+              <span className="text-gray-700 capitalize">{acc.accessory}</span>
             </label>
           ))}
         </div>
@@ -170,7 +175,7 @@ const FilterSidebar = ({
               onClick={() => toggleFilter("colors", color)}
               className={`w-10 h-10 rounded-full border-2 transition-all ${
                 filters.colors.includes(color)
-                  ? "border-red-600 scale-110"
+                  ? "border-deepRed-600 scale-110"
                   : "border-gray-300 hover:border-gray-400"
               }`}
               style={{ backgroundColor: color }}
@@ -196,8 +201,8 @@ const FilterSidebar = ({
               onClick={() => toggleFilter("sizes", size)}
               className={`py-2 px-3 border rounded-lg text-sm font-semibold transition ${
                 filters.sizes.includes(size)
-                  ? "bg-red-600 text-white border-red-600"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-red-600"
+                  ? "bg-deepRed-600 text-white border-deepRed-600"
+                  : "bg-white text-gray-700 border-gray-300 hover:border-deepRed-600"
               }`}
             >
               {size}
@@ -227,7 +232,7 @@ const FilterSidebar = ({
                 onChange={() =>
                   setFilters((prev) => ({ ...prev, priceRange: range }))
                 }
-                className="w-4 h-4 text-red-600"
+                className="w-4 h-4 text-deepRed-600"
               />
               <span className="text-gray-700">{range.label}</span>
             </label>
@@ -245,7 +250,7 @@ const FilterSidebar = ({
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, onlyOffers: e.target.checked }))
             }
-            className="w-4 h-4 text-red-600 rounded"
+            className="w-4 h-4 text-deepRed-600 rounded"
           />
           <span className="text-gray-700 font-semibold">
             Special Offers Only
@@ -347,13 +352,13 @@ export const ProductCard = ({ product }) => {
         >
           <Heart
             className={`w-5 h-5 ${
-              isFavorite ? "fill-red-600 text-red-600" : "text-gray-600"
+              isFavorite ? "fill-deepRed-600 text-deepRed-600" : "text-gray-600"
             }`}
           />
         </button>
 
         {hasDiscount && (
-          <span className="absolute top-3 left-3 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+          <span className="absolute top-3 left-3 bg-deepRed-600 text-white px-3 py-1 rounded-full text-sm font-bold">
             -{discountPercent}%
           </span>
         )}
@@ -385,15 +390,15 @@ export const ProductCard = ({ product }) => {
             {hasDiscount ? (
               <>
                 <span className="text-xl font-bold text-gray-900">
-                  ₹{product.discountPrice}
+                  PKR {product.discountPrice}
                 </span>
                 <span className="text-sm text-gray-500 line-through">
-                  ₹{product.price}
+                  PKR {product.price}
                 </span>
               </>
             ) : (
               <span className="text-xl font-bold text-gray-900">
-                ₹{product.price}
+                PKR {product.price}
               </span>
             )}
           </div>
@@ -401,7 +406,7 @@ export const ProductCard = ({ product }) => {
 
         <button
           onClick={() => addToCart(product._id)}
-          className="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition font-semibold"
+          className="w-full bg-deepRed-600 text-white py-2 rounded-lg hover:bg-deepRed-700 transition font-semibold"
         >
           Add to Cart
         </button>
@@ -441,29 +446,53 @@ export default function ProductsPage() {
     error,
   } = useSelector((state) => state.products);
 
+  const {
+    accessories: catalogAccessories = [],
+    brands: catalogBrands = [],
+    categories: catalogCategories = [],
+  } = useSelector((state) => state.Categories);
+
   useEffect(() => {
     dispatch(fetchProducts());
-  }, []);
+    dispatch(getAccessories());
+    dispatch(getBrands());
+    dispatch(getCategories());
+  }, [dispatch]);
 
  // 🧠 Make sure products are always an array
 const productsArray = Array.isArray(allProducts) ? allProducts : [];
 
-// 🧩 Dynamic filter options derived from fetched products
+// 🧩 Filter options: prefer full catalog from API, fall back to values found on products
 const dynamicBrands = React.useMemo(() => {
+  if (catalogBrands?.length) {
+    return catalogBrands.map((b) => ({ _id: b._id, brand: b.brand }));
+  }
   const seen = new Set();
   return productsArray
     .filter((p) => p.brandId?._id && !seen.has(p.brandId._id) && (seen.add(p.brandId._id), true))
     .map((p) => ({ _id: p.brandId._id, brand: p.brandId.brand || p.brand }));
-}, [productsArray]);
+}, [catalogBrands, productsArray]);
 
 const dynamicCategories = React.useMemo(() => {
+  if (catalogCategories?.length) {
+    return catalogCategories.map((c) => ({
+      _id: c._id,
+      category: c.category,
+    }));
+  }
   const seen = new Set();
   return productsArray
     .filter((p) => p.categoryId?._id && !seen.has(p.categoryId._id) && (seen.add(p.categoryId._id), true))
     .map((p) => ({ _id: p.categoryId._id, category: p.categoryId.category || p.category }));
-}, [productsArray]);
+}, [catalogCategories, productsArray]);
 
 const dynamicAccessories = React.useMemo(() => {
+  if (catalogAccessories?.length) {
+    return catalogAccessories.map((a) => ({
+      _id: a._id,
+      accessory: a.accessory,
+    }));
+  }
   const seen = new Set();
   return productsArray
     .filter(
@@ -476,7 +505,7 @@ const dynamicAccessories = React.useMemo(() => {
       _id: p.accessoryId._id,
       accessory: p.accessoryId.accessory || p.accessory,
     }));
-}, [productsArray]);
+}, [catalogAccessories, productsArray]);
 
 const dynamicColors = React.useMemo(() => {
   return [...new Set(productsArray.map((p) => p.color).filter(Boolean))];
@@ -503,13 +532,13 @@ const dynamicPriceRanges = React.useMemo(() => {
   if (prices.length === 0) return [];
   const min = Math.min(...prices);
   const max = Math.max(...prices);
-  if (min === max) return [{ label: `₹${min}`, min, max: Infinity }];
+  if (min === max) return [{ label: `PKR ${min}`, min, max: Infinity }];
   const step = Math.max(1, Math.ceil((max - min) / 4));
   return [
-    { label: `Under ₹${min + step}`, min: 0, max: min + step },
-    { label: `₹${min + step} - ₹${min + step * 2}`, min: min + step, max: min + step * 2 },
-    { label: `₹${min + step * 2} - ₹${min + step * 3}`, min: min + step * 2, max: min + step * 3 },
-    { label: `Above ₹${min + step * 3}`, min: min + step * 3, max: Infinity },
+    { label: `Under PKR ${min + step}`, min: 0, max: min + step },
+    { label: `PKR ${min + step} - PKR ${min + step * 2}`, min: min + step, max: min + step * 2 },
+    { label: `PKR ${min + step * 2} - PKR ${min + step * 3}`, min: min + step * 2, max: min + step * 3 },
+    { label: `Above PKR ${min + step * 3}`, min: min + step * 3, max: Infinity },
   ];
 }, [productsArray]);
 
@@ -588,11 +617,12 @@ const filteredProducts = productsArray.filter((product) => {
   )
     return false;
 
-  if (
-    filters.accessories.length > 0 &&
-    !filters.accessories.includes(product.accessoryId?._id)
-  )
-    return false;
+  if (filters.accessories.length > 0) {
+    const productAccId = product.accessoryId?._id || product.accessoryId;
+    if (!productAccId || !filters.accessories.includes(productAccId)) {
+      return false;
+    }
+  }
 
   if (filters.colors.length > 0 && !filters.colors.includes(product.color))
     return false;
@@ -646,7 +676,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <a href="/" className="hover:text-red-600">
+            <a href="/" className="hover:text-deepRed-600">
               Home
             </a>{" "}
             / <span className="text-gray-900 font-semibold">All Products</span>
@@ -696,7 +726,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+                  className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-deepRed-600"
                 >
                   <option value="featured">Featured</option>
                   <option value="newest">Newest</option>
@@ -710,7 +740,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded ${
                     viewMode === "grid"
-                      ? "bg-red-600 text-white"
+                      ? "bg-deepRed-600 text-white"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -720,7 +750,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded ${
                     viewMode === "list"
-                      ? "bg-red-600 text-white"
+                      ? "bg-deepRed-600 text-white"
                       : "bg-gray-200 text-gray-700"
                   }`}
                 >
@@ -763,7 +793,7 @@ const sortedProducts = [...filteredProducts].sort((a, b) => {
                       onlyOffers: false,
                     })
                   }
-                  className="bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition font-semibold"
+                  className="bg-deepRed-600 text-white px-6 py-3 rounded-lg hover:bg-deepRed-700 transition font-semibold"
                 >
                   Clear All Filters
                 </button>

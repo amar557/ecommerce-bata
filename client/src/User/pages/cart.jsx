@@ -70,7 +70,7 @@ const CartItem = ({
           </div>
           <button
             onClick={() => removeItem(cartItem._id)}
-            className="p-2 hover:bg-red-50 rounded-full transition text-gray-400 hover:text-red-600"
+            className="p-2 hover:bg-deepRed-50 rounded-full transition text-gray-400 hover:text-deepRed-600"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -97,15 +97,15 @@ const CartItem = ({
             {hasDiscount ? (
               <div className="flex items-center space-x-2">
                 <span className="text-xl font-bold text-gray-900">
-                  ₹{itemPrice}
+                  PKR {itemPrice}
                 </span>
                 <span className="text-sm text-gray-500 line-through">
-                  ₹{item.price}
+                  PKR {item.price}
                 </span>
               </div>
             ) : (
               <span className="text-xl font-bold text-gray-900">
-                ₹{itemPrice}
+                PKR {itemPrice}
               </span>
             )}
           </div>
@@ -132,7 +132,7 @@ const CartItem = ({
 
             <div className="text-right">
               <p className="text-sm text-gray-600">Subtotal</p>
-              <p className="text-xl font-bold text-gray-900">₹{itemTotal}</p>
+              <p className="text-xl font-bold text-gray-900">PKR {itemTotal}</p>
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ const OrderSummary = ({
             value={couponCode}
             onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
             placeholder="Enter code"
-            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-red-600"
+            className="flex-1 border-2 border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-deepRed-600"
           />
           <button
             onClick={applyCoupon}
@@ -203,13 +203,13 @@ const OrderSummary = ({
       <div className="space-y-3 mb-6 pb-6 border-b">
         <div className="flex justify-between text-gray-700">
           <span>Subtotal ({cartItems.length} items)</span>
-          <span className="font-semibold">₹{subtotal.toFixed(2)}</span>
+          <span className="font-semibold">PKR {subtotal.toFixed(2)}</span>
         </div>
 
         {discount > 0 && (
           <div className="flex justify-between text-green-600">
             <span>Discount ({discount}%)</span>
-            <span className="font-semibold">-₹{discountAmount.toFixed(2)}</span>
+            <span className="font-semibold">-PKR {discountAmount.toFixed(2)}</span>
           </div>
         )}
 
@@ -219,14 +219,14 @@ const OrderSummary = ({
             {shipping === 0 ? (
               <span className="text-green-600">FREE</span>
             ) : (
-              `₹${shipping}`
+              `PKR ${shipping}`
             )}
           </span>
         </div>
 
         {subtotal < 999 && shipping > 0 && (
           <p className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
-            Add ₹{(999 - subtotal).toFixed(2)} more for FREE shipping!
+            Add PKR {(999 - subtotal).toFixed(2)} more for FREE shipping!
           </p>
         )}
       </div>
@@ -234,12 +234,12 @@ const OrderSummary = ({
       {/* Total */}
       <div className="flex justify-between items-center text-xl font-bold text-gray-900 mb-6">
         <span>Total</span>
-        <span>₹{total.toFixed(2)}</span>
+        <span>PKR {total.toFixed(2)}</span>
       </div>
 
       {/* Checkout Button */}
       <button
-        className="w-full bg-red-600 text-white py-4 rounded-lg font-bold hover:bg-red-700 transition flex items-center justify-center space-x-2 mb-4"
+        className="w-full bg-deepRed-600 text-white py-4 rounded-lg font-bold hover:bg-deepRed-700 transition flex items-center justify-center space-x-2 mb-4"
         onClick={() => navigateTo("/checkout")}
       >
         <span>Proceed to Checkout</span>
@@ -258,10 +258,10 @@ const OrderSummary = ({
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
           <Truck className="w-5 h-5 text-blue-600" />
-          <span>Free shipping on orders above ₹999</span>
+          <span>Free shipping on orders above PKR 999</span>
         </div>
         <div className="flex items-center space-x-3 text-sm text-gray-600">
-          <Tag className="w-5 h-5 text-red-600" />
+          <Tag className="w-5 h-5 text-deepRed-600" />
           <span>Best price guaranteed</span>
         </div>
       </div>
@@ -285,7 +285,7 @@ const EmptyCart = () => {
           Looks like you haven't added anything to your cart yet. Start shopping
           to fill it up!
         </p>
-        <button className="bg-red-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-red-700 transition" onClick={()=>navigateTo('/products')}>
+        <button className="bg-deepRed-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-deepRed-700 transition" onClick={()=>navigateTo('/products')}>
           Start Shopping
         </button>
       </div>
@@ -358,9 +358,9 @@ const RecommendedProducts = () => {
               </h3>
               <div className="flex items-center justify-between">
                 <span className="text-lg font-bold text-gray-900">
-                  ₹{product.price}
+                  PKR {product.price}
                 </span>
-                <button className="text-sm text-red-600 font-semibold hover:text-red-700">
+                <button className="text-sm text-deepRed-600 font-semibold hover:text-deepRed-700">
                   Add
                 </button>
               </div>
@@ -493,7 +493,7 @@ export default function Cart() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
+      <div className="min-h-screen flex items-center justify-center text-deepRed-500">
         Failed to load cart: {error}
       </div>
     );
@@ -505,7 +505,7 @@ export default function Cart() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <a href="/" className="hover:text-red-600">
+            <a href="/" className="hover:text-deepRed-600">
               Home
             </a>{" "}
             /<span className="text-gray-900 font-semibold"> Shopping Cart</span>
@@ -542,7 +542,7 @@ export default function Cart() {
 
               {/* Cart Actions */}
               <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white rounded-lg shadow-md p-4">
-                <button className="text-gray-700 font-semibold hover:text-red-600 transition">
+                <button className="text-gray-700 font-semibold hover:text-deepRed-600 transition">
                   ← Continue Shopping
                 </button>
                 <button
@@ -557,7 +557,7 @@ export default function Cart() {
                       );
                     }
                   }}
-                  className="text-red-600 font-semibold hover:text-red-700 transition"
+                  className="text-deepRed-600 font-semibold hover:text-deepRed-700 transition"
                 >
                   Clear Cart
                 </button>

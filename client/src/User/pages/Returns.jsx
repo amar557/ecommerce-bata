@@ -8,7 +8,7 @@ export default function Returns() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <Link to="/" className="hover:text-red-600">Home</Link>
+            <Link to="/" className="hover:text-deepRed-600">Home</Link>
             {" / "}
             <span className="text-gray-900 font-semibold">Returns</span>
           </p>
@@ -24,7 +24,7 @@ export default function Returns() {
         <div className="space-y-8">
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <RotateCcw className="w-8 h-8 text-red-600" />
+              <RotateCcw className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Return Policy</h2>
             </div>
             <p className="text-gray-600 mb-4">
@@ -37,7 +37,7 @@ export default function Returns() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <FileCheck className="w-8 h-8 text-red-600" />
+              <FileCheck className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">How to Return</h2>
             </div>
             <ol className="list-decimal list-inside space-y-2 text-gray-600">
@@ -51,7 +51,7 @@ export default function Returns() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <Clock className="w-8 h-8 text-red-600" />
+              <Clock className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Refund Timeline</h2>
             </div>
             <p className="text-gray-600">
@@ -61,11 +61,11 @@ export default function Returns() {
 
           <section className="bg-white rounded-xl shadow-md p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-4">
-              <AlertCircle className="w-8 h-8 text-red-600" />
+              <AlertCircle className="w-8 h-8 text-deepRed-600" />
               <h2 className="text-xl font-bold text-gray-900">Non-Returnable Items</h2>
             </div>
             <p className="text-gray-600">
-              Certain items may not be eligible for return (e.g., personalized or sale items as specified at checkout). If you have questions about whether your item can be returned, please <Link to="/contact" className="text-red-600 hover:underline">contact us</Link> before sending it back.
+              Certain items may not be eligible for return (e.g., personalized or sale items as specified at checkout). If you have questions about whether your item can be returned, please <Link to="/contact" className="text-deepRed-600 hover:underline">contact us</Link> before sending it back.
             </p>
           </section>
         </div>

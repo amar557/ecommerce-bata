@@ -1,15 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Heart, Star, TrendingUp, ChevronRight } from "lucide-react";
+import { TrendingUp, ChevronRight, ChevronLeft } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchProducts } from "../../Admin/Redux/Slices/productSlice";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination, Autoplay, A11y } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { fetchBestSellers } from "../../Admin/Redux/Slices/productSlice";
+import { getCategories } from "../../Admin/Redux/Async/Asynch";
 import { useNavigationController } from "../../constants/navigation";
 import { ProductCard } from "./products";
+
+const FALLBACK_CATEGORY_IMAGE =
+  "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop";
 
 // Hero Banner Component
 const HeroBanner = () => {
   return (
-    <section className="relative bg-gradient-to-r from-red-600 to-red-700 text-white">
+    <section className="relative bg-gradient-to-r from-deepRed-600 to-deepRed-700 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="grid md:grid-cols-2 gap-8 items-center">
           <div>
@@ -18,15 +27,15 @@ const HeroBanner = () => {
               <span className="text-sm font-semibold">New Collection 2025</span>
             </div>
             <h2 className="text-5xl font-bold mb-4">Step into Style</h2>
-            <p className="text-xl mb-8 text-red-100">
+            <p className="text-xl mb-8 text-deepRed-100">
               Discover the perfect pair for every occasion. Quality footwear
               since 1894.
             </p>
             <div className="flex space-x-4">
-              <button className="bg-white text-red-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
+              <button className="bg-white text-deepRed-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
                 Shop Now
               </button>
-              <button className="border-2 border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-red-600 transition">
+              <button className="border-2 border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-deepRed-600 transition">
                 View Collection
               </button>
             </div>
@@ -47,16 +56,19 @@ const HeroBanner = () => {
 // Category Card Component
 const CategoryCard = ({ category }) => {
   return (
-    <Link to={category.link} className="group block">
-      <div className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105">
+    <Link to={category.link} className="group block h-full">
+      <div className="relative overflow-hidden rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-105 h-full">
         <img
-          src={category.image}
+          src={category.image || FALLBACK_CATEGORY_IMAGE}
           alt={category.name}
           className="w-full h-64 object-cover"
+          onError={(e) => {
+            e.currentTarget.src = FALLBACK_CATEGORY_IMAGE;
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
           <div className="p-6 w-full">
-            <h3 className="text-2xl font-bold text-white mb-2">
+            <h3 className="text-2xl font-bold text-white mb-2 capitalize">
               {category.name}
             </h3>
             <div className="flex items-center text-white">
@@ -70,8 +82,89 @@ const CategoryCard = ({ category }) => {
   );
 };
 
+const CategoryCarousel = ({ categories }) => {
+  // Duplicate slides when few items so Swiper loop stays infinite
+  const slides =
+    categories.length > 0 && categories.length < 8
+      ? [...categories, ...categories]
+      : categories;
+
+  return (
+    <div className="relative category-swiper px-6 md:px-8">
+      <Swiper
+        modules={[Navigation, Pagination, Autoplay, A11y]}
+        loop
+        speed={600}
+        spaceBetween={24}
+        slidesPerView={2}
+        autoplay={{
+          delay: 3500,
+          disableOnInteraction: false,
+          pauseOnMouseEnter: true,
+        }}
+        breakpoints={{
+          768: { slidesPerView: 4, spaceBetween: 24 },
+        }}
+        pagination={{
+          clickable: true,
+          el: ".category-swiper-pagination",
+          bulletClass: "category-swiper-bullet",
+          bulletActiveClass: "category-swiper-bullet-active",
+        }}
+        navigation={{
+          prevEl: ".category-swiper-prev",
+          nextEl: ".category-swiper-next",
+        }}
+      >
+        {slides.map((category, index) => (
+          <SwiperSlide key={`${category.id || category.name}-${index}`}>
+            <CategoryCard category={category} />
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      <button
+        type="button"
+        aria-label="Previous categories"
+        className="category-swiper-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+
+      <button
+        type="button"
+        aria-label="Next categories"
+        className="category-swiper-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      <div className="category-swiper-pagination flex items-center justify-center gap-2 mt-6" />
+
+      <style>{`
+        .category-swiper-bullet {
+          display: inline-block;
+          width: 0.625rem;
+          height: 0.625rem;
+          border-radius: 9999px;
+          background: #d1d5db;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .category-swiper-bullet:hover {
+          background: #9ca3af;
+        }
+        .category-swiper-bullet-active {
+          width: 1.5rem;
+          background: #7A0A0A;
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // Categories Section Component
-const CategoriesSection = ({ categories }) => {
+const CategoriesSection = ({ categories, loading }) => {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="text-center mb-12">
@@ -83,121 +176,126 @@ const CategoriesSection = ({ categories }) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {categories.map((category, index) => (
-          <CategoryCard key={index} category={category} />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-16">
+          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+        </div>
+      ) : categories.length === 0 ? (
+        <p className="text-center text-gray-500 py-12">
+          No categories available
+        </p>
+      ) : (
+        <CategoryCarousel categories={categories} />
+      )}
     </section>
   );
 };
 
-// Product Card Component
-// const ProductCard = ({ product, addToCart }) => {
-//   const [isFavorite, setIsFavorite] = useState(false);
+// Products Section Component — Swiper of top 5 best sellers
+const ProductsSection = ({ products, loading }) => {
+  const { navigateTo } = useNavigationController();
 
-//   return (
-//     <div className="bg-white rounded-xl shadow-md overflow-hidden group hover:shadow-xl transition-shadow duration-300">
-//       <div className="relative overflow-hidden">
-//         <img
-//           src={product.thumbnailImage}
-//           alt={product.name}
-//           className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
-//         />
-//         <button
-//           onClick={() => setIsFavorite(!isFavorite)}
-//           className="absolute top-4 right-4 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition"
-//         >
-//           <Heart
-//             className={`w-5 h-5 ${
-//               isFavorite ? "fill-red-600 text-red-600" : "text-gray-600"
-//             }`}
-//           />
-//         </button>
-//         {product?.category && (
-//           <span className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-//             {product.category}
-//           </span>
-//         )}
-//       </div>
-
-//       <div className="p-4">
-//         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-//           {product.title}
-//         </h3>
-
-//         <div className="flex items-center mb-3">
-//           <div className="flex items-center">
-//             {[...Array(5)].map((_, i) => (
-//               <Star
-//                 key={i}
-//                 className={`w-4 h-4 ${
-//                   i < Math.floor(product.rating)
-//                     ? "fill-yellow-400 text-yellow-400"
-//                     : "text-gray-300"
-//                 }`}
-//               />
-//             ))}
-//           </div>
-//           <span className="ml-2 text-sm text-gray-600">({product.rating})</span>
-//         </div>
-
-//         <div className="flex items-center justify-between">
-//           <span className="text-2xl font-bold text-gray-900">
-//             ₹{product.price}
-//           </span>
-//           <button
-//             onClick={() => addToCart(product._id)}
-//             className="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition font-semibold"
-//           >
-//             Add to Cart
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// Products Section Component
-const ProductsSection = ({ products, addToCart, loading }) => {
-    const { navigateTo, navigateBack } = useNavigationController();
+  const slides =
+    products.length > 0 && products.length < 8
+      ? [...products, ...products]
+      : products;
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50">
-      {/* Header */}
       <div className="text-center mb-12">
         <h2 className="text-4xl font-bold text-gray-900 mb-4">
-          Featured Products
+          Best Sellers
         </h2>
-        <p className="text-gray-600 text-lg">Handpicked styles just for you</p>
+        <p className="text-gray-600 text-lg">Our top 5 bestsellers right now</p>
       </div>
 
-      {/* Loader */}
       {loading ? (
         <div className="flex justify-center items-center py-20">
           <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
         </div>
       ) : products && products.length > 0 ? (
-        /* Products Grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <ProductCard
-              key={product._id}
-              product={product}
-              addToCart={addToCart}
-            />
-          ))}
+        <div className="relative product-swiper px-6 md:px-8">
+          <button
+            type="button"
+            aria-label="Previous products"
+            className="product-swiper-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay, A11y]}
+            loop
+            speed={600}
+            spaceBetween={24}
+            slidesPerView={2}
+            autoplay={{
+              delay: 4000,
+              disableOnInteraction: false,
+              pauseOnMouseEnter: true,
+            }}
+            breakpoints={{
+              640: { slidesPerView: 3, spaceBetween: 20 },
+              1024: { slidesPerView: 4, spaceBetween: 24 },
+            }}
+            pagination={{
+              clickable: true,
+              el: ".product-swiper-pagination",
+              bulletClass: "product-swiper-bullet",
+              bulletActiveClass: "product-swiper-bullet-active",
+            }}
+            navigation={{
+              prevEl: ".product-swiper-prev",
+              nextEl: ".product-swiper-next",
+            }}
+          >
+            {slides.map((product, index) => (
+              <SwiperSlide key={`${product._id}-${index}`}>
+                <ProductCard product={product} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+
+          <button
+            type="button"
+            aria-label="Next products"
+            className="product-swiper-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          <div className="product-swiper-pagination flex items-center justify-center gap-2 mt-6" />
+
+          <style>{`
+            .product-swiper-bullet {
+              display: inline-block;
+              width: 0.625rem;
+              height: 0.625rem;
+              border-radius: 9999px;
+              background: #d1d5db;
+              cursor: pointer;
+              transition: all 0.2s ease;
+            }
+            .product-swiper-bullet:hover {
+              background: #9ca3af;
+            }
+            .product-swiper-bullet-active {
+              width: 1.5rem;
+              background: #7A0A0A;
+            }
+          `}</style>
         </div>
       ) : (
-        /* Empty State */
         <div className="text-center text-gray-500 text-lg py-20">
           No products found 😔
         </div>
       )}
 
-      {/* Footer Button */}
       <div className="text-center mt-12">
-        <button className="bg-gray-900 text-white px-8 py-3 rounded-full hover:bg-gray-800 transition font-semibold" onClick={()=>navigateTo('/products')}>
+        <button
+          className="bg-gray-900 text-white px-8 py-3 rounded-full hover:bg-gray-800 transition font-semibold"
+          onClick={() => navigateTo("/products")}
+        >
           View All Products
         </button>
       </div>
@@ -208,7 +306,7 @@ const ProductsSection = ({ products, addToCart, loading }) => {
 // Features Section Component
 const FeaturesSection = () => {
   const features = [
-    { icon: "🚚", title: "Free Shipping", desc: "On orders above ₹999" },
+    { icon: "🚚", title: "Free Shipping", desc: "On orders above PKR 999" },
     { icon: "↩️", title: "Easy Returns", desc: "30-day return policy" },
     { icon: "✓", title: "Quality Assured", desc: "100% authentic products" },
     { icon: "💳", title: "Secure Payment", desc: "Safe & secure checkout" },
@@ -233,64 +331,35 @@ const FeaturesSection = () => {
   );
 };
 
-
-// Main App Component
 export default function BataLandingPage() {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
   const dispatch = useDispatch();
 
-  const {
-    items,
-    loading: productLoading,
-    error,
-  } = useSelector((state) => state.products);
-  console.log(items);
+  const { bestSellers, bestSellersLoading } = useSelector(
+    (state) => state.products
+  );
+  const { categories: rawCategories, loading: categoriesLoading } = useSelector(
+    (state) => state.Categories
+  );
+
   useEffect(() => {
-    dispatch(fetchProducts()); // You can pass gender if needed
-  }, []);
-  const categories = [
-    {
-      name: "Men",
-      image:
-        "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop",
-      link: "/products?gender=male",
-    },
-    {
-      name: "Women",
-      image:
-        "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=400&h=400&fit=crop",
-      link: "/products?gender=female",
-    },
-    {
-      name: "Kids",
-      image:
-        "https://images.unsplash.com/photo-1514989940723-e8e51635b782?w=400&h=400&fit=crop",
-      link: "/products?gender=kids",
-    },
-    {
-      name: "Sports",
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-      link: "/products?category=Sports",
-    },
-  ];
+    dispatch(fetchBestSellers(5));
+    dispatch(getCategories());
+  }, [dispatch]);
 
-
-
-  const addToCart = (productId) => {
-    setCartCount(cartCount + 1);
-  };
+  const categories = (rawCategories || []).map((cat) => ({
+    id: cat._id,
+    name: cat.category,
+    image: cat.image || FALLBACK_CATEGORY_IMAGE,
+    link: `/products?category=${encodeURIComponent(cat.category)}`,
+  }));
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* <Header cartCount={cartCount} menuOpen={menuOpen} setMenuOpen={setMenuOpen} /> */}
       <HeroBanner />
-      <CategoriesSection categories={categories} />
+      <CategoriesSection categories={categories} loading={categoriesLoading} />
       <ProductsSection
-        products={items}
-        loading={productLoading}
-        addToCart={addToCart}
+        products={bestSellers}
+        loading={bestSellersLoading}
       />
       <FeaturesSection />
     </div>

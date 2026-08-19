@@ -63,6 +63,7 @@ export const loginUser = createAsyncThunk(
       });
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("admin", String(Boolean(data.user?.admin)));
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -86,10 +87,14 @@ export const registerUser = createAsyncThunk(
 // 🔁 Update user profile
 export const updateUser = createAsyncThunk(
   "auth/updateUser",
-  async ({ userId, updates }, { rejectWithValue }) => {
+  async (updates, { rejectWithValue }) => {
     try {
-      const { data } = await axiosInstance.put(`/users/${userId}`, updates);
-      localStorage.setItem("user", JSON.stringify(data));
+      const { data } = await axiosInstance.put("/api/auth/profile", updates);
+      if (data.token) localStorage.setItem("token", data.token);
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("admin", String(Boolean(data.user?.admin)));
+      }
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -103,6 +108,7 @@ export const logoutUser = createAsyncThunk(
   async (_, { dispatch }) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("admin");
     dispatch(authSlice.actions.clearUser());
   }
 );
@@ -121,6 +127,11 @@ const authSlice = createSlice({
     clearUser: (state) => {
       state.user = null;
       state.token = null;
+      state.error = null;
+    },
+    setCredentials: (state, action) => {
+      state.user = action.payload.user;
+      state.token = action.payload.token;
       state.error = null;
     },
   },
@@ -155,11 +166,34 @@ const authSlice = createSlice({
       })
 
       // Update
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(updateUser.fulfilled, (state, action) => {
-        state.user = action.payload;
+        state.loading = false;
+        if (action.payload?.user) {
+          state.user = action.payload.user;
+        }
+        if (action.payload?.token) {
+          state.token = action.payload.token;
+        }
       })
       .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
         state.error = action.payload;
+      })
+
+      // Token check
+      .addCase(checkTokenExpiration.fulfilled, (state, action) => {
+        if (action.payload?.user) {
+          state.user = action.payload.user;
+          localStorage.setItem("user", JSON.stringify(action.payload.user));
+          localStorage.setItem(
+            "admin",
+            String(Boolean(action.payload.user?.admin))
+          );
+        }
       })
 
       // Logout
@@ -170,5 +204,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearUser } = authSlice.actions;
+export const { clearUser, setCredentials } = authSlice.actions;
 export default authSlice.reducer;

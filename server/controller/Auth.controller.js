@@ -155,6 +155,100 @@ export const userdata = async (req, res, next) => {
   }
 };
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await userSchema
+      .find({})
+      .select({ password: 0 })
+      .sort({ _id: -1 });
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Get users error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to fetch users",
+    });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    if (!req.user?._id) {
+      return res.status(401).json({ success: false, msg: "Unauthorized" });
+    }
+
+    const { name, email, currentPassword, newPassword } = req.body;
+    const user = await userSchema.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ success: false, msg: "User not found" });
+    }
+
+    if (name != null && String(name).trim()) {
+      user.name = String(name).trim();
+    }
+
+    if (email != null && String(email).trim()) {
+      const nextEmail = String(email).trim().toLowerCase();
+      if (nextEmail !== user.email) {
+        const exists = await userSchema.findOne({ email: nextEmail });
+        if (exists && String(exists._id) !== String(user._id)) {
+          return res.status(409).json({
+            success: false,
+            msg: "Email already in use",
+          });
+        }
+        user.email = nextEmail;
+      }
+    }
+
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          msg: "Current password is required",
+        });
+      }
+      const matches = await bcrypt.compare(currentPassword, user.password);
+      if (!matches) {
+        return res.status(401).json({
+          success: false,
+          msg: "Current password is incorrect",
+        });
+      }
+      if (String(newPassword).length < 6) {
+        return res.status(400).json({
+          success: false,
+          msg: "New password must be at least 6 characters",
+        });
+      }
+      user.password = await bcrypt.hash(String(newPassword), 10);
+    }
+
+    await user.save();
+
+    const token = user.availToken();
+    const safeUser = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      admin: user.admin,
+    };
+
+    res.status(200).json({
+      success: true,
+      msg: "Profile updated successfully",
+      token,
+      user: safeUser,
+    });
+  } catch (error) {
+    console.error("Update profile error:", error);
+    res.status(500).json({
+      success: false,
+      msg: "Failed to update profile",
+    });
+  }
+};
+
 export const logoutUser = async (req, res, next) => {
   try {
     res.clearCookie("token", {

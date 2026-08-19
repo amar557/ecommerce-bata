@@ -8,7 +8,7 @@ export default function ContactUs() {
         {/* Breadcrumb */}
         <div className="mb-6">
           <p className="text-sm text-gray-600">
-            <Link to="/" className="hover:text-red-600">Home</Link>
+            <Link to="/" className="hover:text-deepRed-600">Home</Link>
             {" / "}
             <span className="text-gray-900 font-semibold">Contact Us</span>
           </p>
@@ -34,7 +34,7 @@ export default function ContactUs() {
                   id="name"
                   type="text"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-deepRed-600 focus:border-transparent outline-none"
                   placeholder="Your name"
                 />
               </div>
@@ -46,7 +46,7 @@ export default function ContactUs() {
                   id="email"
                   type="email"
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-deepRed-600 focus:border-transparent outline-none"
                   placeholder="your@email.com"
                 />
               </div>
@@ -57,7 +57,7 @@ export default function ContactUs() {
                 <input
                   id="subject"
                   type="text"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-deepRed-600 focus:border-transparent outline-none"
                   placeholder="How can we help?"
                 />
               </div>
@@ -69,13 +69,13 @@ export default function ContactUs() {
                   id="message"
                   rows={5}
                   required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent outline-none resize-none"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-deepRed-600 focus:border-transparent outline-none resize-none"
                   placeholder="Your message..."
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
+                className="w-full bg-deepRed-600 text-white py-3 rounded-lg font-semibold hover:bg-deepRed-700 transition"
               >
                 Send Message
               </button>
@@ -88,23 +88,23 @@ export default function ContactUs() {
               <h2 className="text-xl font-bold text-gray-900 mb-6">Get in touch</h2>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <Mail className="w-5 h-5 text-deepRed-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-gray-900">Email</p>
-                    <a href="mailto:amarhussain391@gmail.com" className="text-gray-600 hover:text-red-600">
+                    <a href="mailto:amarhussain391@gmail.com" className="text-gray-600 hover:text-deepRed-600">
                       amarhussain391@gmail.com
                     </a>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Phone className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <Phone className="w-5 h-5 text-deepRed-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-gray-900">Phone</p>
                     <p className="text-gray-600">+92 XXX XXXXXXX</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <MapPin className="w-5 h-5 text-deepRed-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-gray-900">Address</p>
                     <p className="text-gray-600">
@@ -114,7 +114,7 @@ export default function ContactUs() {
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+                  <Clock className="w-5 h-5 text-deepRed-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-gray-900">Hours</p>
                     <p className="text-gray-600">
