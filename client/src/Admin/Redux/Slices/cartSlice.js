@@ -1,29 +1,40 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosInstance from "../../../constants/axiosInstance";
 
+function isSilentArg(arg) {
+  return Boolean(arg && typeof arg === "object" && arg.silent);
+}
 
 // 🛒 Fetch all cart items
-export const fetchCart = createAsyncThunk("cart/fetchCart", async (userId, { rejectWithValue }) => {
-  try {
-    const { data } = await axiosInstance.get(`/api/cart/items`);
-    console.log(data,'called ')
-    return data;
-  } catch (err) {
-    return rejectWithValue(err.response?.data || err.message);
+export const fetchCart = createAsyncThunk(
+  "cart/fetchCart",
+  async (arg, { rejectWithValue }) => {
+    try {
+      const { data } = await axiosInstance.get(`/api/cart/items`);
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || err.message);
+    }
   }
-});
+);
 
-// ➕ Add item to cart (selectedSizeId = size subdoc _id when adding from product details)
+// ➕ Add / update item in cart
 export const addItemToCart = createAsyncThunk(
   "cart/addItem",
-  async ({ productId, quantity = 1, selectedSizeId }, { rejectWithValue, dispatch }) => {
+  async (
+    { productId, quantity = 1, selectedSizeId },
+    { rejectWithValue, dispatch }
+  ) => {
     try {
-      await axiosInstance.post("/api/cart/add", {
+      const { data } = await axiosInstance.post("/api/cart/add", {
         productId,
         quantity,
-        ...(selectedSizeId != null && selectedSizeId !== "" && { selectedSizeId }),
+        ...(selectedSizeId != null &&
+          selectedSizeId !== "" && { selectedSizeId }),
       });
-      dispatch(fetchCart());
+      // Refresh populated cart without full-page loading state
+      await dispatch(fetchCart({ silent: true }));
+      return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -33,10 +44,10 @@ export const addItemToCart = createAsyncThunk(
 // ❌ Remove item
 export const removeItemFromCart = createAsyncThunk(
   "cart/removeItem",
-  async ({ cartItemId, userId }, { rejectWithValue, dispatch }) => {
+  async ({ cartItemId }, { rejectWithValue }) => {
     try {
       await axiosInstance.delete(`/api/cart/${cartItemId}`);
-      dispatch(fetchCart(userId));
+      return { cartItemId };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
     }
@@ -46,20 +57,30 @@ export const removeItemFromCart = createAsyncThunk(
 // ✅ Place order (creates order, clears cart). Pass { shippingAddress, paymentMethod }.
 export const checkoutUserCart = createAsyncThunk(
   "cart/checkout",
-  async ({ shippingAddress, paymentMethod = "cod", embedded = false }, { rejectWithValue, dispatch }) => {
+  async (
+    { shippingAddress, paymentMethod = "cod", embedded = false },
+    { rejectWithValue, dispatch }
+  ) => {
     try {
       if (paymentMethod === "stripe") {
-        const { data } = await axiosInstance.post("/api/cart/stripe/create-session", {
-          shippingAddress: shippingAddress || {},
+        const { data } = await axiosInstance.post(
+          "/api/cart/stripe/create-session",
+          {
+            shippingAddress: shippingAddress || {},
+            embedded: Boolean(embedded),
+          }
+        );
+        return {
+          ...data,
+          paymentMethod: "stripe",
           embedded: Boolean(embedded),
-        });
-        return { ...data, paymentMethod: "stripe", embedded: Boolean(embedded) };
+        };
       }
       const { data } = await axiosInstance.post("/api/cart/checkout", {
         shippingAddress: shippingAddress || {},
         paymentMethod: "cod",
       });
-      dispatch(fetchCart());
+      await dispatch(fetchCart({ silent: true }));
       return { ...data, paymentMethod: "cod" };
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -74,7 +95,7 @@ export const confirmStripePayment = createAsyncThunk(
       const { data } = await axiosInstance.post("/api/cart/stripe/confirm", {
         sessionId,
       });
-      dispatch(fetchCart());
+      await dispatch(fetchCart({ silent: true }));
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data || err.message);
@@ -89,30 +110,45 @@ const cartSlice = createSlice({
     loading: false,
     error: null,
   },
-  reducers: {},
+  reducers: {
+    updateCartItemQuantityLocal(state, action) {
+      const { cartItemId, quantity } = action.payload || {};
+      const item = state.items.find((i) => String(i._id) === String(cartItemId));
+      if (item && quantity >= 1) {
+        item.quantity = quantity;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Fetch Cart
-      .addCase(fetchCart.pending, (state) => {
-        state.loading = true;
+      .addCase(fetchCart.pending, (state, action) => {
+        // Only show full-page loader on first load, not on silent refresh
+        if (!isSilentArg(action.meta.arg) && state.items.length === 0) {
+          state.loading = true;
+        }
       })
       .addCase(fetchCart.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload || [];
+        state.error = null;
       })
       .addCase(fetchCart.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      // Handle Add/Remove/Checkout errors
       .addCase(addItemToCart.rejected, (state, action) => {
         state.error = action.payload;
+      })
+      .addCase(removeItemFromCart.fulfilled, (state, action) => {
+        const id = action.payload?.cartItemId;
+        state.items = state.items.filter(
+          (item) => String(item._id) !== String(id)
+        );
       })
       .addCase(removeItemFromCart.rejected, (state, action) => {
         state.error = action.payload;
       })
       .addCase(checkoutUserCart.fulfilled, (state, action) => {
-        // Don't clear cart until Stripe payment is confirmed
         if (action.payload?.paymentMethod !== "stripe") {
           state.items = [];
         }
@@ -123,4 +159,5 @@ const cartSlice = createSlice({
   },
 });
 
+export const { updateCartItemQuantityLocal } = cartSlice.actions;
 export default cartSlice.reducer;

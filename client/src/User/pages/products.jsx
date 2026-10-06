@@ -381,7 +381,10 @@ export const ProductCard = ({ product }) => {
             title={product.color}
           />
           <span className="ml-2 text-xs text-gray-500">
-            {product.sizes?.length} sizes available
+            {product.sizes?.length || 0}{" "}
+            {(product.sizes?.length || 0) === 1
+              ? "size available"
+              : "sizes available"}
           </span>
         </div>
 

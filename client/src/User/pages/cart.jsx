@@ -20,8 +20,10 @@ import {
   addItemToCart,
   fetchCart,
   removeItemFromCart,
+  updateCartItemQuantityLocal,
 } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 // Header Component
 
@@ -114,15 +116,18 @@ const CartItem = ({
           <div className="flex items-center space-x-4">
             <div className="flex items-center border-2 border-gray-300 rounded-lg">
               <button
+                type="button"
+                disabled={quantity <= 1}
                 onClick={() =>
                   updateQuantity(item._id, Math.max(1, quantity - 1), cartItem?.selectedSizeId)
                 }
-                className="p-2 hover:bg-gray-100 transition"
+                className="p-2 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               >
                 <Minus className="w-4 h-4" />
               </button>
               <span className="px-4 font-semibold">{quantity}</span>
               <button
+                type="button"
                 onClick={() => updateQuantity(item._id, quantity + 1, cartItem?.selectedSizeId)}
                 className="p-2 hover:bg-gray-100 transition"
               >
@@ -402,6 +407,21 @@ export default function Cart() {
     
     if (newQuantity < 1) return;
 
+    const cartRow = items?.find(
+      (i) =>
+        String(i.productId?._id || i.productId) === String(cartItemId) &&
+        String(i.selectedSizeId || "") === String(selectedSizeId || "")
+    );
+    const previousQuantity = cartRow?.quantity;
+    if (cartRow?._id) {
+      dispatch(
+        updateCartItemQuantityLocal({
+          cartItemId: cartRow._id,
+          quantity: newQuantity,
+        })
+      );
+    }
+
     try {
       await dispatch(addItemToCart({
         productId: cartItemId,
@@ -417,6 +437,14 @@ export default function Cart() {
         draggable: true,
       });
     } catch (error) {
+      if (cartRow?._id && previousQuantity != null) {
+        dispatch(
+          updateCartItemQuantityLocal({
+            cartItemId: cartRow._id,
+            quantity: previousQuantity,
+          })
+        );
+      }
       toast.error("Failed to update cart. Please try again.", {
         position: "top-right",
         autoClose: 3000,
@@ -485,9 +513,7 @@ export default function Cart() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500 animate-pulse">
-        Loading your cart...
-      </div>
+      <LoadingIndicator fullScreen message="Loading your cart..." />
     );
   }
 

@@ -29,6 +29,7 @@ import {
 } from "../Redux/Async/Asynch";
 import axiosInstance from "../../constants/axiosInstance";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 const MONTHS = [
   "Jan",
@@ -358,9 +359,11 @@ function Dashboard() {
   };
 
   return (
-    <div className="p-8 bg-slate-200">
+    <div className="p-8 bg-slate-200 relative min-h-[60vh]">
       {loading && (
-        <p className="mb-4 text-sm text-slate-600">Loading dashboard data…</p>
+        <div className="mb-6 flex justify-center py-6">
+          <LoadingIndicator size="md" message="Loading dashboard data..." />
+        </div>
       )}
 
       <div className="flex items-center justify-between gap-8 mb-6 flex-wrap">

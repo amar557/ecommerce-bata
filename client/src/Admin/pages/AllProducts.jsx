@@ -7,16 +7,16 @@ import useFetchData from "../customHooks/useFetchData";
 
 import { useNavigationController } from "../../constants/navigation";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
+
 function AllProucts() {
-  const { data: rawData, deleteProduct } = useFetchData();
+  const { data: rawData, deleteProduct, loading, error } = useFetchData();
   const data = Array.isArray(rawData) ? rawData : [];
 
   const { navigateTo } = useNavigationController();
   const handleCopy = async (id) => {
     try {
-      // Construct full product URL using window.location.origin
       const completeLink = `${window.location.origin}/product/${id}`;
-
       await navigator.clipboard.writeText(completeLink);
       toast.success("Copied to clipboard!");
     } catch (err) {
@@ -61,61 +61,74 @@ function AllProucts() {
           </p>
           <p className="text-center w-20 capitalize font-semibold ">Options</p>
         </div>
-        {data && data.length > 0 ? (
-          data.map((item, i) => (
-          <div className="flex  gap-4 bg-white w-full py-2 px-4 items-center  justify-between">
-            <p className="text-center w-20 capitalize font-semibold ">
-              {i + 1}
-            </p>
-            <p className="text-start w-20 capitalize font-semibold  flex items-center gap-2">
-              <img
-                src={item.thumbnailImage}
-                className="h-10 w-6 object-cover"
-                alt=""
-              />
-              <span className="text-sm text-slate-600 font-normal">
-                {item.title}
-              </span>
-            </p>
-
-            <p className="text-center text-nowrap  w- rounded-3xl  capitalize font-semibold text-sm bg-orange-200 px-2 py-1 text-orange-600 ">
-              admin product
-            </p>
-            <p className="text-center w-20 capitalize  text-slate-500 leading-tight ">
-              Base <br /> Price: PKR {item.price} / <br />
-              12 Total Sale: 0 <br /> Current Stock: 0
-            </p>
-            <p className="text-center w-20 capitalize font-semibold ">1</p>
-            <p className="text-center w-20 capitalize font-semibold flex flex-col items-center justify-center  gap-2">
-              <button
-                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-200"
-                onClick={() => navigateTo(`/admin/update-product/${item._id}`)}
-              >
-                <TbEdit />
-              </button>
-              <button
-                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-black text-white"
-                onClick={() => handleCopy(item._id)}
-              >
-                <MdContentCopy />
-              </button>
-              <button
-                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-deepRed-100 text-deepRed-500"
-                onClick={() => deleteProduct(item._id)}
-              >
-                <RiDeleteBin6Line />
-              </button>
-              <button
-                className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-100 text-slate-400"
-                onClick={() => handleView(item._id)}
-              >
-                <IoIosEye />
-              </button>
-            </p>
+        {loading ? (
+          <div className="w-full py-16 flex justify-center">
+            <LoadingIndicator message="Loading products..." />
           </div>
+        ) : error ? (
+          <div className="w-full py-8 text-center text-deepRed-600">{error}</div>
+        ) : data.length > 0 ? (
+          data.map((item, i) => (
+            <div
+              key={item._id || i}
+              className="flex  gap-4 bg-white w-full py-2 px-4 items-center  justify-between"
+            >
+              <p className="text-center w-20 capitalize font-semibold ">
+                {i + 1}
+              </p>
+              <p className="text-start w-20 capitalize font-semibold  flex items-center gap-2">
+                <img
+                  src={item.thumbnailImage}
+                  className="h-10 w-6 object-cover"
+                  alt=""
+                />
+                <span className="text-sm text-slate-600 font-normal">
+                  {item.title}
+                </span>
+              </p>
+
+              <p className="text-center text-nowrap  w- rounded-3xl  capitalize font-semibold text-sm bg-orange-200 px-2 py-1 text-orange-600 ">
+                admin product
+              </p>
+              <p className="text-center w-20 capitalize  text-slate-500 leading-tight ">
+                Base <br /> Price: PKR {item.price} / <br />
+                12 Total Sale: 0 <br /> Current Stock: 0
+              </p>
+              <p className="text-center w-20 capitalize font-semibold ">1</p>
+              <p className="text-center w-20 capitalize font-semibold flex flex-col items-center justify-center  gap-2">
+                <button
+                  className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-200"
+                  onClick={() =>
+                    navigateTo(`/admin/update-product/${item._id}`)
+                  }
+                >
+                  <TbEdit />
+                </button>
+                <button
+                  className="text-sm h-6 grid place-items-center w-6 rounded-full bg-black text-white"
+                  onClick={() => handleCopy(item._id)}
+                >
+                  <MdContentCopy />
+                </button>
+                <button
+                  className="text-sm h-6 grid place-items-center w-6 rounded-full bg-deepRed-100 text-deepRed-500"
+                  onClick={() => deleteProduct(item._id)}
+                >
+                  <RiDeleteBin6Line />
+                </button>
+                <button
+                  className="text-sm h-6 grid place-items-center w-6 rounded-full bg-slate-100 text-slate-400"
+                  onClick={() => handleView(item._id)}
+                >
+                  <IoIosEye />
+                </button>
+              </p>
+            </div>
           ))
         ) : (
-          <div className="w-full py-8 text-center text-gray-500">No products found</div>
+          <div className="w-full py-8 text-center text-gray-500">
+            No products found
+          </div>
         )}
       </div>
     </div>

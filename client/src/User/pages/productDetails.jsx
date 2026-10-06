@@ -26,6 +26,7 @@ import { ProductCard } from "./products";
 import { addItemToCart } from "../../Admin/Redux/Slices/cartSlice";
 import { useNavigationController } from "../../constants/navigation";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
 import axiosInstance from "../../constants/axiosInstance";
 
 function formatSummaryDefault() {
@@ -325,8 +326,11 @@ const ProductInfo = ({
             </button>
           </div>
           <span className="text-sm text-gray-600">
-            {product.sizes.find((s) => s._id === selectedSize)?.stock || 0}{" "}
-            items available
+            {(() => {
+              const stock =
+                product.sizes.find((s) => s._id === selectedSize)?.stock || 0;
+              return `${stock} ${stock === 1 ? "item" : "items"} available`;
+            })()}
           </span>
         </div>
       </div>
@@ -574,7 +578,7 @@ const ReviewsSection = ({ productId, onSummaryChange }) => {
 
       {/* Individual Reviews */}
       {loading ? (
-        <p className="text-gray-500 animate-pulse">Loading reviews...</p>
+        <LoadingIndicator size="sm" message="Loading reviews..." />
       ) : reviews.length === 0 ? (
         <p className="text-gray-600">
           No reviews yet. Be the first to review this product.
@@ -651,8 +655,8 @@ const RelatedProducts = () => {
   // 🌀 Loading State
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 text-center">
-        <p className="text-gray-500 animate-pulse">Loading suggestions...</p>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <LoadingIndicator size="sm" message="Loading suggestions..." />
       </div>
     );
   }
@@ -728,14 +732,7 @@ export default function ProductDetailsPage() {
 
   // Show loader while product is loading
   if (loading || !singleProduct) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-primaryTeal rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-600 font-medium">Loading product...</p>
-        </div>
-      </div>
-    );
+    return <LoadingIndicator fullScreen message="Loading product..." />;
   }
 
   // Handle error state

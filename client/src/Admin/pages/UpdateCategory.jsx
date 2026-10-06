@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { port } from "../../Data";
+import ImagePicker from "../components/ImagePicker";
 
 async function uploadImage(file) {
   const fd = new FormData();
@@ -88,26 +89,18 @@ function UpdateCategory() {
           }
           placeholder="category title"
         />
-        <label className="block text-sm capitalize font-semibold my-2">
-          image
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          className="block w-full text-sm border rounded-md bg-slate-50 p-2"
-          onChange={(e) => {
-            const file = e.target.files?.[0] || null;
+        <ImagePicker
+          label="image"
+          preview={preview}
+          onChange={(file) => {
             setImageFile(file);
             setPreview(file ? URL.createObjectURL(file) : category.image || "");
           }}
+          onClear={() => {
+            setImageFile(null);
+            setPreview(category.image || "");
+          }}
         />
-        {preview && (
-          <img
-            src={preview}
-            alt="preview"
-            className="mt-3 h-24 w-24 rounded object-cover border"
-          />
-        )}
         <button
           type="submit"
           disabled={saving}

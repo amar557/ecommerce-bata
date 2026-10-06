@@ -114,13 +114,10 @@ export const getAllItems = async (req, res, next) => {
     const items = await ListItem.find(filter)
       .populate("categoryId", "category")
       .populate("brandId", "brand")
-      .populate("accessoryId", "accessory");
+      .populate("accessoryId", "accessory")
+      .sort({ createdAt: -1 });
 
-    if (!items || items.length === 0) {
-      return res.status(200).json({ items: [] });
-    }
-
-    res.status(200).json(items);
+    return res.status(200).json(Array.isArray(items) ? items : []);
   } catch (error) {
     console.error("Error fetching items:", error.message);
     res.status(500).json({ msg: "Failed to fetch items", error: error.message });

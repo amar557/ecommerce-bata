@@ -33,6 +33,7 @@ import { useDispatch } from "react-redux";
 import { checkTokenExpiration } from "./Admin/Redux/Slices/authSlice";
 import InviteRedirect from "./User/pages/InviteRedirect";
 import ProtectedAdminRoute from "./Admin/components/ProtectedAdminRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const dispatch = useDispatch();
@@ -44,6 +45,7 @@ function App() {
   return (
     // <Provider store={store}>
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
           <Route path="/invite/:code" element={<InviteRedirect />} />
         <Route path="/" element={<UserLayout />}>

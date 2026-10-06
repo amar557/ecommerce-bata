@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CheckCircle, Package, Loader2 } from "lucide-react";
+import { CheckCircle, Package } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { confirmStripePayment } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 export default function OrderSuccess() {
   const navigate = useNavigate();
@@ -49,15 +50,7 @@ export default function OrderSuccess() {
 
   if (confirming) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl p-8 sm:p-12 text-center">
-          <Loader2 className="w-12 h-12 text-deepRed-600 animate-spin mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2">
-            Confirming your payment…
-          </h1>
-          <p className="text-gray-600">Please wait a moment.</p>
-        </div>
-      </div>
+      <LoadingIndicator fullScreen message="Confirming your payment..." />
     );
   }
 

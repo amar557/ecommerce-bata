@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { Package, CheckCircle, Truck, MapPin, ChevronRight, ArrowLeft } from "lucide-react";
 import axiosInstance from "../../constants/axiosInstance";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 const STATUS_STEPS = [
   { key: "placed", label: "Order Placed", icon: Package },
@@ -290,11 +291,7 @@ export default function TrackOrder() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">Loading...</div>
-      </div>
-    );
+    return <LoadingIndicator fullScreen message="Loading orders..." />;
   }
 
   if (error && !selectedOrder) {

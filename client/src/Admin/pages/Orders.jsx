@@ -6,6 +6,7 @@ import { LuDownload } from "react-icons/lu";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchOrders, updateOrderStatus } from "../Redux/Slices/ordersSlice";
 import { toast } from "react-toastify";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 function Orders() {
   const dispatch = useDispatch();
@@ -21,14 +22,23 @@ function Orders() {
   }, [dispatch]);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    setUpdatingStatus({ ...updatingStatus, [orderId]: true });
+    setUpdatingStatus((prev) => ({ ...prev, [orderId]: true }));
     try {
-      await dispatch(updateOrderStatus({ orderId, status: newStatus })).unwrap();
+      const result = await dispatch(
+        updateOrderStatus({ orderId, status: newStatus })
+      ).unwrap();
+      if (
+        selectedOrder &&
+        String(selectedOrder._id) === String(orderId) &&
+        result?.order
+      ) {
+        setSelectedOrder(result.order);
+      }
       toast.success("Order status updated successfully!");
     } catch (err) {
       toast.error(err?.msg || "Failed to update order status");
     } finally {
-      setUpdatingStatus({ ...updatingStatus, [orderId]: false });
+      setUpdatingStatus((prev) => ({ ...prev, [orderId]: false }));
     }
   };
 
@@ -177,8 +187,8 @@ function Orders() {
 
   if (loading) {
     return (
-      <div className="bg-slate-200 px-6 py-8">
-        <div className="text-center text-gray-600">Loading orders...</div>
+      <div className="bg-slate-200 px-6 py-16">
+        <LoadingIndicator message="Loading orders..." />
       </div>
     );
   }
@@ -202,7 +212,7 @@ function Orders() {
           <div className="flex items-center justify-between w-full mb-4 px-6">
             <p className="font-semibold text-sm">Orders</p>
             <button
-              onClick={() => dispatch(fetchOrders())}
+              onClick={() => dispatch(fetchOrders({ silent: true }))}
               className="bg-black text-white px-3 uppercase text-sm font-semibold py-1 rounded-3xl hover:bg-gray-800"
             >
               Refresh

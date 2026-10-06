@@ -11,6 +11,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dynamicNavbar from "./Routes/dynamicNavbar.js";
 import uploadRouter from "./Routes/upload.route.js";
+import contactRouter from "./Routes/contact.route.js";
+import newsletterRouter from "./Routes/newsletter.route.js";
 import { verifyToken } from "./middlewares/verifyToken.mdw.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -18,7 +20,11 @@ const app = express();
 
 app.use(express.json());
 const corsOptions = {
-  origin: ["http://localhost:5173", "https://ecommerce-bata.vercel.app"],
+  origin: [
+    "http://localhost:5173",
+    "https://ecommerce-bata.vercel.app",
+    "https://ecommerce-bata-v3wg.vercel.app",
+  ],
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
@@ -33,6 +39,8 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/upload", uploadRouter);
+app.use("/api/contact", contactRouter);
+app.use("/api/newsletter", newsletterRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/item", route);
 app.use("/api", Categories);

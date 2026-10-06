@@ -11,12 +11,15 @@ import { fetchBestSellers } from "../../Admin/Redux/Slices/productSlice";
 import { getCategories } from "../../Admin/Redux/Async/Asynch";
 import { useNavigationController } from "../../constants/navigation";
 import { ProductCard } from "./products";
+import LoadingIndicator from "../../components/LoadingIndicator";
 
 const FALLBACK_CATEGORY_IMAGE =
   "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=400&h=400&fit=crop";
 
 // Hero Banner Component
 const HeroBanner = () => {
+  const { navigateTo } = useNavigationController();
+
   return (
     <section className="relative bg-gradient-to-r from-deepRed-600 to-deepRed-700 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -32,10 +35,18 @@ const HeroBanner = () => {
               since 1894.
             </p>
             <div className="flex space-x-4">
-              <button className="bg-white text-deepRed-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition">
+              <button
+                type="button"
+                onClick={() => navigateTo("/products")}
+                className="bg-white text-deepRed-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition"
+              >
                 Shop Now
               </button>
-              <button className="border-2 border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-deepRed-600 transition">
+              <button
+                type="button"
+                onClick={() => navigateTo("/products")}
+                className="border-2 border-white px-8 py-3 rounded-full font-semibold hover:bg-white hover:text-deepRed-600 transition"
+              >
                 View Collection
               </button>
             </div>
@@ -178,7 +189,7 @@ const CategoriesSection = ({ categories, loading }) => {
 
       {loading ? (
         <div className="flex justify-center items-center py-16">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <LoadingIndicator size="md" message="Loading categories..." />
         </div>
       ) : categories.length === 0 ? (
         <p className="text-center text-gray-500 py-12">
@@ -191,14 +202,12 @@ const CategoriesSection = ({ categories, loading }) => {
   );
 };
 
-// Products Section Component — Swiper of top 5 best sellers
+// Products Section Component — Swiper of top best sellers
 const ProductsSection = ({ products, loading }) => {
   const { navigateTo } = useNavigationController();
-
-  const slides =
-    products.length > 0 && products.length < 8
-      ? [...products, ...products]
-      : products;
+  const count = products?.length || 0;
+  // Base slidesPerView is 2; only enable carousel UI when there are more items than fit
+  const needsCarousel = count > 2;
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 bg-gray-50">
@@ -206,85 +215,98 @@ const ProductsSection = ({ products, loading }) => {
         <h2 className="text-4xl font-bold text-gray-900 mb-4">
           Best Sellers
         </h2>
-        <p className="text-gray-600 text-lg">Our top 5 bestsellers right now</p>
+        <p className="text-gray-600 text-lg">
+          {count > 0
+            ? `Our top ${count} bestseller${count === 1 ? "" : "s"} right now`
+            : "Our top bestsellers right now"}
+        </p>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-20">
-          <div className="w-12 h-12 border-4 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+          <LoadingIndicator size="md" message="Loading bestsellers..." />
         </div>
       ) : products && products.length > 0 ? (
-        <div className="relative product-swiper px-6 md:px-8">
-          <button
-            type="button"
-            aria-label="Previous products"
-            className="product-swiper-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        needsCarousel ? (
+          <div className="relative product-swiper px-6 md:px-8">
+            <button
+              type="button"
+              aria-label="Previous products"
+              className="product-swiper-prev absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
 
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay, A11y]}
-            loop
-            speed={600}
-            spaceBetween={24}
-            slidesPerView={2}
-            autoplay={{
-              delay: 4000,
-              disableOnInteraction: false,
-              pauseOnMouseEnter: true,
-            }}
-            breakpoints={{
-              640: { slidesPerView: 3, spaceBetween: 20 },
-              1024: { slidesPerView: 4, spaceBetween: 24 },
-            }}
-            pagination={{
-              clickable: true,
-              el: ".product-swiper-pagination",
-              bulletClass: "product-swiper-bullet",
-              bulletActiveClass: "product-swiper-bullet-active",
-            }}
-            navigation={{
-              prevEl: ".product-swiper-prev",
-              nextEl: ".product-swiper-next",
-            }}
-          >
-            {slides.map((product, index) => (
-              <SwiperSlide key={`${product._id}-${index}`}>
-                <ProductCard product={product} />
-              </SwiperSlide>
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay, A11y]}
+              loop={count > 4}
+              watchOverflow
+              speed={600}
+              spaceBetween={24}
+              slidesPerView={2}
+              autoplay={{
+                delay: 4000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true,
+              }}
+              breakpoints={{
+                640: { slidesPerView: 3, spaceBetween: 20 },
+                1024: { slidesPerView: 4, spaceBetween: 24 },
+              }}
+              pagination={{
+                clickable: true,
+                el: ".product-swiper-pagination",
+                bulletClass: "product-swiper-bullet",
+                bulletActiveClass: "product-swiper-bullet-active",
+              }}
+              navigation={{
+                prevEl: ".product-swiper-prev",
+                nextEl: ".product-swiper-next",
+              }}
+            >
+              {products.map((product) => (
+                <SwiperSlide key={product._id}>
+                  <ProductCard product={product} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+
+            <button
+              type="button"
+              aria-label="Next products"
+              className="product-swiper-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+
+            <div className="product-swiper-pagination flex items-center justify-center gap-2 mt-6" />
+
+            <style>{`
+              .product-swiper-bullet {
+                display: inline-block;
+                width: 0.625rem;
+                height: 0.625rem;
+                border-radius: 9999px;
+                background: #d1d5db;
+                cursor: pointer;
+                transition: all 0.2s ease;
+              }
+              .product-swiper-bullet:hover {
+                background: #9ca3af;
+              }
+              .product-swiper-bullet-active {
+                width: 1.5rem;
+                background: #7A0A0A;
+              }
+            `}</style>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
             ))}
-          </Swiper>
-
-          <button
-            type="button"
-            aria-label="Next products"
-            className="product-swiper-next absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 z-10 h-10 w-10 rounded-full bg-white shadow-md border flex items-center justify-center text-gray-800 hover:bg-gray-50"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          <div className="product-swiper-pagination flex items-center justify-center gap-2 mt-6" />
-
-          <style>{`
-            .product-swiper-bullet {
-              display: inline-block;
-              width: 0.625rem;
-              height: 0.625rem;
-              border-radius: 9999px;
-              background: #d1d5db;
-              cursor: pointer;
-              transition: all 0.2s ease;
-            }
-            .product-swiper-bullet:hover {
-              background: #9ca3af;
-            }
-            .product-swiper-bullet-active {
-              width: 1.5rem;
-              background: #7A0A0A;
-            }
-          `}</style>
-        </div>
+          </div>
+        )
       ) : (
         <div className="text-center text-gray-500 text-lg py-20">
           No products found 😔

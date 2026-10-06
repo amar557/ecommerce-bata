@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { deleteAccessoryItem, getAccessories } from "../Redux/Async/Asynch";
 import { toast } from "react-toastify";
+import ImagePicker from "../components/ImagePicker";
 
 async function uploadImage(file) {
   const fd = new FormData();
@@ -158,26 +159,18 @@ function Accessories() {
               value={row.accessory}
               placeholder="e.g. Wallets, Belts"
             />
-            <label className="block text-sm capitalize font-semibold my-2">
-              image
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm border rounded-md bg-slate-50 p-2"
-              onChange={(e) => {
-                const file = e.target.files?.[0] || null;
+            <ImagePicker
+              label="image"
+              preview={preview}
+              onChange={(file) => {
                 setImageFile(file);
                 setPreview(file ? URL.createObjectURL(file) : "");
               }}
+              onClear={() => {
+                setImageFile(null);
+                setPreview("");
+              }}
             />
-            {preview && (
-              <img
-                src={preview}
-                alt="preview"
-                className="mt-3 h-24 w-24 rounded object-cover border"
-              />
-            )}
             <button
               type="submit"
               disabled={saving}
