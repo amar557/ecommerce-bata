@@ -48,7 +48,9 @@ export const getSuggestedItems = async (req, res, next) => {
         { gender: currentItem.gender },
       ],
     })
-      .limit(10) // limit results to 10
+      .populate("categoryId", "category")
+      .populate("brandId", "brand")
+      .limit(10)
       .lean();
 
     res.status(200).json({

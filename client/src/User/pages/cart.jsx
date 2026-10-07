@@ -1,9 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ShoppingCart,
-  User,
-  Search,
-  Heart,
   Trash2,
   Plus,
   Minus,
@@ -11,8 +8,8 @@ import {
   Tag,
   Shield,
   Truck,
-  X,
   ShoppingBag,
+  Loader2,
 } from "lucide-react";
 import { useNavigationController } from "../../constants/navigation";
 import { useDispatch, useSelector } from "react-redux";
@@ -24,8 +21,8 @@ import {
 } from "../../Admin/Redux/Slices/cartSlice";
 import { toast } from "react-toastify";
 import LoadingIndicator from "../../components/LoadingIndicator";
-
-// Header Component
+import axiosInstance from "../../constants/axiosInstance";
+import { ProductCard } from "./products";
 
 // Cart Item Component
 const CartItem = ({
@@ -34,8 +31,8 @@ const CartItem = ({
   removeItem,
   quantity,
   cart: cartItem,
+  updating = false,
 }) => {
-  console.log(item,'t;he item ')
   const hasDiscount = item?.offer;
   const itemPrice = hasDiscount ? item.discountPrice : item.price;
   const itemTotal = itemPrice * quantity;
@@ -46,7 +43,14 @@ const CartItem = ({
   const stock = selectedSizeObj != null ? selectedSizeObj.stock : null;
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col sm:flex-row gap-4">
+    <div className="relative bg-white rounded-lg shadow-md p-4 sm:p-6 flex flex-col sm:flex-row gap-4 overflow-hidden">
+      {updating && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-white/75 backdrop-blur-[1px] cursor-wait">
+          <Loader2 className="w-8 h-8 text-deepRed-600 animate-spin" />
+          <p className="text-sm font-medium text-gray-700">Updating...</p>
+        </div>
+      )}
+
       {/* Product Image */}
       <div className="flex-shrink-0">
         <img
@@ -71,8 +75,10 @@ const CartItem = ({
             </p>
           </div>
           <button
+            type="button"
+            disabled={updating}
             onClick={() => removeItem(cartItem._id)}
-            className="p-2 hover:bg-deepRed-50 rounded-full transition text-gray-400 hover:text-deepRed-600"
+            className="p-2 hover:bg-deepRed-50 rounded-full transition text-gray-400 hover:text-deepRed-600 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Trash2 className="w-5 h-5" />
           </button>
@@ -117,9 +123,14 @@ const CartItem = ({
             <div className="flex items-center border-2 border-gray-300 rounded-lg">
               <button
                 type="button"
-                disabled={quantity <= 1}
+                disabled={updating || quantity <= 1}
                 onClick={() =>
-                  updateQuantity(item._id, Math.max(1, quantity - 1), cartItem?.selectedSizeId)
+                  updateQuantity(
+                    item._id,
+                    Math.max(1, quantity - 1),
+                    cartItem?.selectedSizeId,
+                    cartItem?._id
+                  )
                 }
                 className="p-2 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
               >
@@ -128,8 +139,16 @@ const CartItem = ({
               <span className="px-4 font-semibold">{quantity}</span>
               <button
                 type="button"
-                onClick={() => updateQuantity(item._id, quantity + 1, cartItem?.selectedSizeId)}
-                className="p-2 hover:bg-gray-100 transition"
+                disabled={updating}
+                onClick={() =>
+                  updateQuantity(
+                    item._id,
+                    quantity + 1,
+                    cartItem?.selectedSizeId,
+                    cartItem?._id
+                  )
+                }
+                className="p-2 hover:bg-gray-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -298,42 +317,87 @@ const EmptyCart = () => {
   );
 };
 
-// Recommended Products Component
-const RecommendedProducts = () => {
-  const recommendations = [
-    {
-      id: 1,
-      title: "Casual Loafers",
-      brand: "Bata",
-      price: 3999,
-      image:
-        "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=400&h=400&fit=crop",
-    },
-    {
-      id: 2,
-      title: "Sports Shoes",
-      brand: "Nike",
-      price: 5999,
-      image:
-        "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&h=400&fit=crop",
-    },
-    {
-      id: 3,
-      title: "Running Sneakers",
-      brand: "Adidas",
-      price: 4999,
-      image:
-        "https://images.unsplash.com/photo-1460353581641-37baddab0fa2?w=400&h=400&fit=crop",
-    },
-    {
-      id: 4,
-      title: "Formal Shoes",
-      brand: "Bata",
-      price: 4499,
-      image:
-        "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=400&h=400&fit=crop",
-    },
-  ];
+// Recommended Products — based on categories/gender of items already in cart
+const RecommendedProducts = ({ cartItems = [] }) => {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const cartProductIds = useMemo(() => {
+    const ids = (cartItems || [])
+      .map((item) => String(item?.productId?._id || item?.productId || ""))
+      .filter(Boolean);
+    return [...new Set(ids)];
+  }, [cartItems]);
+
+  const seedKey = cartProductIds.join(",");
+
+  useEffect(() => {
+    if (!cartProductIds.length) {
+      setProducts([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function load() {
+      setLoading(true);
+      try {
+        // Use up to 3 cart products so suggestions reflect mixed cart contents
+        const seeds = cartProductIds.slice(0, 3);
+        const results = await Promise.all(
+          seeds.map((id) =>
+            axiosInstance
+              .get(`/api/item/suggestions/${id}`)
+              .then((res) =>
+                Array.isArray(res.data?.data) ? res.data.data : []
+              )
+              .catch(() => [])
+          )
+        );
+
+        const cartSet = new Set(cartProductIds);
+        const merged = [];
+        const seen = new Set();
+
+        for (const list of results) {
+          for (const product of list) {
+            const pid = String(product?._id || "");
+            if (!pid || cartSet.has(pid) || seen.has(pid)) continue;
+            seen.add(pid);
+            merged.push(product);
+            if (merged.length >= 4) break;
+          }
+          if (merged.length >= 4) break;
+        }
+
+        if (!cancelled) setProducts(merged);
+      } catch {
+        if (!cancelled) setProducts([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [seedKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (loading) {
+    return (
+      <div className="mt-12">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          You May Also Like
+        </h2>
+        <div className="flex justify-center py-10">
+          <LoadingIndicator size="sm" message="Finding similar products..." />
+        </div>
+      </div>
+    );
+  }
+
+  if (!products.length) return null;
 
   return (
     <div className="mt-12">
@@ -341,36 +405,8 @@ const RecommendedProducts = () => {
         You May Also Like
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {recommendations.map((product) => (
-          <div
-            key={product.id}
-            className="bg-white rounded-lg shadow-md overflow-hidden group cursor-pointer hover:shadow-xl transition"
-          >
-            <div className="relative overflow-hidden">
-              <img
-                src={product.image}
-                alt={product.title}
-                className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-              <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition">
-                <Heart className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-gray-500 mb-1">{product.brand}</p>
-              <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
-                {product.title}
-              </h3>
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-gray-900">
-                  PKR {product.price}
-                </span>
-                <button className="text-sm text-deepRed-600 font-semibold hover:text-deepRed-700">
-                  Add
-                </button>
-              </div>
-            </div>
-          </div>
+        {products.map((product) => (
+          <ProductCard key={product._id} product={product} />
         ))}
       </div>
     </div>
@@ -382,17 +418,32 @@ export default function Cart() {
   const { items, error, loading } = useSelector((state) => state.cart);
   const [couponCode, setCouponCode] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [updatingIds, setUpdatingIds] = useState({});
 
-  const {navigateTo}=useNavigationController()
+  const { navigateTo } = useNavigationController();
   // Fetch cart on mount
   useEffect(() => {
     dispatch(fetchCart());
   }, [dispatch]);
 
   const { user } = useSelector((state) => state.auth);
-  
-  const updateQuantity = async (cartItemId, newQuantity, selectedSizeId) => {
-    // Check if user is logged in
+
+  const setItemUpdating = (cartRowId, value) => {
+    if (!cartRowId) return;
+    setUpdatingIds((prev) => {
+      const next = { ...prev };
+      if (value) next[cartRowId] = true;
+      else delete next[cartRowId];
+      return next;
+    });
+  };
+
+  const updateQuantity = async (
+    productId,
+    newQuantity,
+    selectedSizeId,
+    cartRowId
+  ) => {
     if (!user || !user.name) {
       toast.warning("You are not logged in. Please login to update cart items.", {
         position: "top-right",
@@ -404,30 +455,40 @@ export default function Cart() {
       });
       return;
     }
-    
+
     if (newQuantity < 1) return;
 
-    const cartRow = items?.find(
-      (i) =>
-        String(i.productId?._id || i.productId) === String(cartItemId) &&
-        String(i.selectedSizeId || "") === String(selectedSizeId || "")
-    );
+    const cartRow =
+      (cartRowId && items?.find((i) => String(i._id) === String(cartRowId))) ||
+      items?.find(
+        (i) =>
+          String(i.productId?._id || i.productId) === String(productId) &&
+          String(i.selectedSizeId || "") === String(selectedSizeId || "")
+      );
+
+    const rowId = cartRow?._id || cartRowId;
+    if (rowId && updatingIds[rowId]) return;
+
     const previousQuantity = cartRow?.quantity;
-    if (cartRow?._id) {
+    if (rowId) {
+      setItemUpdating(rowId, true);
       dispatch(
         updateCartItemQuantityLocal({
-          cartItemId: cartRow._id,
+          cartItemId: rowId,
           quantity: newQuantity,
         })
       );
     }
 
     try {
-      await dispatch(addItemToCart({
-        productId: cartItemId,
-        quantity: newQuantity,
-        ...(selectedSizeId != null && selectedSizeId !== "" && { selectedSizeId }),
-      })).unwrap();
+      await dispatch(
+        addItemToCart({
+          productId,
+          quantity: newQuantity,
+          ...(selectedSizeId != null &&
+            selectedSizeId !== "" && { selectedSizeId }),
+        })
+      ).unwrap();
       toast.success("Cart updated successfully!", {
         position: "top-right",
         autoClose: 2000,
@@ -437,10 +498,10 @@ export default function Cart() {
         draggable: true,
       });
     } catch (error) {
-      if (cartRow?._id && previousQuantity != null) {
+      if (rowId && previousQuantity != null) {
         dispatch(
           updateCartItemQuantityLocal({
-            cartItemId: cartRow._id,
+            cartItemId: rowId,
             quantity: previousQuantity,
           })
         );
@@ -453,31 +514,37 @@ export default function Cart() {
         pauseOnHover: true,
         draggable: true,
       });
+    } finally {
+      if (rowId) setItemUpdating(rowId, false);
     }
   };
 
   const removeItem = async (cartItemId) => {
-    if (window.confirm("Are you sure you want to remove this item?")) {
-      try {
-        await dispatch(removeItemFromCart({ cartItemId })).unwrap();
-        toast.success("Item removed from cart successfully!", {
-          position: "top-right",
-          autoClose: 2000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      } catch (error) {
-        toast.error("Failed to remove item. Please try again.", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
-      }
+    if (updatingIds[cartItemId]) return;
+    if (!window.confirm("Are you sure you want to remove this item?")) return;
+
+    setItemUpdating(cartItemId, true);
+    try {
+      await dispatch(removeItemFromCart({ cartItemId })).unwrap();
+      toast.success("Item removed from cart successfully!", {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } catch (error) {
+      toast.error("Failed to remove item. Please try again.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+    } finally {
+      setItemUpdating(cartItemId, false);
     }
   };
 
@@ -563,6 +630,7 @@ export default function Cart() {
                     updateQuantity={updateQuantity}
                     removeItem={removeItem}
                     quantity={cartItem?.quantity}
+                    updating={Boolean(updatingIds[cartItem._id])}
                   />
                 ))}
 
@@ -605,7 +673,7 @@ export default function Cart() {
         )}
 
         {/* Recommended Products */}
-        {items?.length > 0 && <RecommendedProducts />}
+        {items?.length > 0 && <RecommendedProducts cartItems={items} />}
       </div>
     </div>
   );
